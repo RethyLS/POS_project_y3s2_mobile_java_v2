@@ -15,91 +15,19 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/primary"
+            android:background="@color/background"
             app:title="Shopping Cart"
-            app:titleTextColor="@android:color/white"
+            app:titleTextColor="@android:color/black"
             app:navigationIcon="?attr/homeAsUpIndicator"
-            app:navigationIconTint="@android:color/white">
-
-            <Button
-                android:id="@+id/btn_clear_cart"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginEnd="16dp"
-                android:text="Clear All"
-                android:textColor="@color/primary"
-                android:background="@android:color/white"
-                android:textSize="12sp"
-                android:padding="8dp" />
-
-        </androidx.appcompat.widget.Toolbar>
+            app:navigationIconTint="@android:color/black"
+            app:titleCentered="true" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Cart Items -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_cart_items"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_margin="8dp" />
-
-    <!-- Empty Cart Message -->
-    <LinearLayout
-        android:id="@+id/layout_empty_cart"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@android:drawable/ic_menu_view"
-            app:tint="@android:color/darker_gray"
-            android:layout_marginBottom="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Your cart is empty"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/darker_gray"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add some products to get started"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            android:layout_marginBottom="24dp" />
-
-        <Button
-            android:id="@+id/btn_continue_shopping"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Continue Shopping"
-            android:background="@color/primary"
-            android:textColor="@android:color/white"
-            android:padding="12dp" />
-
-    </LinearLayout>
-
-    <!-- Checkout Section -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_checkout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
-        android:backgroundTint="@color/design_default_color_surface">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -107,116 +35,256 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Total -->
-            <LinearLayout
+            <!-- Customer Section removed for dialog -->
+
+            <!-- Cart Section -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@android:color/white">
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Total:"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tv_total_amount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="$0.00"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/primary" />
-
-            </LinearLayout>
-
-            <!-- Customer Name -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-
-                <EditText
-                    android:id="@+id/et_customer_name"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Customer Name (Optional)"
-                    android:inputType="textPersonName" />
+                    android:orientation="vertical">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <!-- Cart Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical">
 
-            <!-- Payment Method -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Payment Method:"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp" />
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@android:drawable/ic_menu_view"
+                            app:tint="@android:color/black"
+                            android:layout_marginEnd="8dp" />
 
-            <RadioGroup
-                android:id="@+id/rg_payment_method"
+                        <TextView
+                            android:id="@+id/tv_cart_title"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Cart (0)"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/btn_clear_cart"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Clear All"
+                            android:textColor="@color/primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:padding="8dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:background="?attr/selectableItemBackground" />
+
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0" />
+
+                    <!-- Cart Items RecyclerView -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_cart_items"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="100dp"
+                        android:padding="8dp" />
+
+                    <!-- Empty Cart Message -->
+                    <LinearLayout
+                        android:id="@+id/layout_empty_cart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="32dp"
+                        android:minHeight="150dp"
+                        android:visibility="gone">
+
+                        <ImageView
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:src="@android:drawable/ic_menu_view"
+                            app:tint="@android:color/darker_gray"
+                            android:layout_marginBottom="12dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Your cart is empty"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/darker_gray"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Add some products to get started"
+                            android:textSize="12sp"
+                            android:textColor="@android:color/darker_gray" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Payment Section -->
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                app:cardCornerRadius="8dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@android:color/white">
 
-                <RadioButton
-                    android:id="@+id/rb_cash"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cash"
-                    android:checked="true" />
-
-                <RadioButton
-                    android:id="@+id/rb_card"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Card"
-                    android:layout_marginStart="24dp" />
-
-                <RadioButton
-                    android:id="@+id/rb_digital"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Digital"
-                    android:layout_marginStart="24dp" />
-
-            </RadioGroup>
-
-            <!-- Amount Paid -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
-
-                <EditText
-                    android:id="@+id/et_amount_paid"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Amount Paid"
-                    android:inputType="numberDecimal" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            </com.google.android.material.textfield.TextInputLayout>
+                    <!-- Payment Method section removed for dialog -->
 
-            <!-- Checkout Button -->
-            <Button
-                android:id="@+id/btn_checkout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Process Payment"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:background="@color/success"
-                android:textColor="@android:color/black"
-                android:padding="16dp"
-                android:enabled="false" />
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Subtotal -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Subtotal:"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/tv_subtotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="$0.00"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/black" />
+
+                    </LinearLayout>
+
+                    <!-- Tax -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tax:"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/tv_tax"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="$0.00"
+                            android:textSize="14sp"
+                            android:textColor="@android:color/black" />
+
+                    </LinearLayout>
+
+                    <!-- Total -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Total:"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/tv_total_amount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="$0.00"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/success" />
+
+                    </LinearLayout>
+
+                    <!-- Complete Sale Button -->
+                    <Button
+                        android:id="@+id/btn_checkout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Checkout"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:background="@color/success"
+                        android:textColor="@android:color/white"
+                        android:padding="16dp"
+                        android:enabled="false" />
+
+                    <!-- Continue Shopping Button -->
+                    <Button
+                        android:id="@+id/btn_continue_shopping"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="Continue Shopping"
+                        android:background="@android:color/darker_gray"
+                        android:textColor="@android:color/white"
+                        android:gravity="center"
+                        android:layout_marginBottom="12dp" />
+
+                    <!-- Checkout Card -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_checkout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="@android:color/white"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </ScrollView>
 
 </LinearLayout>

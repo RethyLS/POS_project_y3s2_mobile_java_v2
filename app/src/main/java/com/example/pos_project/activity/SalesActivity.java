@@ -4,8 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,7 +39,8 @@ public class SalesActivity extends AppCompatActivity implements
     private EditText etSearchProducts;
     private Toolbar toolbar;
     private TextView tvCartBadge, tvCartBadgeToolbar;
-    private Button btnToolbarCart;
+    private androidx.appcompat.widget.AppCompatImageButton btnToolbarCart;
+    private android.widget.ImageView ivProfileIcon;
     
     // Bottom Action Panel Components
     private androidx.cardview.widget.CardView cartActionPanel;
@@ -85,8 +84,9 @@ public class SalesActivity extends AppCompatActivity implements
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("");
             getSupportActionBar().setDisplayHomeAsUpEnabled(false); // Remove back arrow for home screen
-            getSupportActionBar().setTitle("POS");
+            // Title is now handled by custom views in toolbar
         }
         
         // Set status bar color to match toolbar (light gray)
@@ -101,32 +101,6 @@ public class SalesActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.sales_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        
-        if (id == android.R.id.home) {
-            finish();
-            return true;
-        } else if (id == R.id.action_cart) {
-            Intent cartIntent = new Intent(this, CartActivity.class);
-            startActivity(cartIntent);
-            return true;
-        } else if (id == R.id.action_logout) {
-            // Add logout functionality
-            logout();
-            return true;
-        }
-        
-        return super.onOptionsItemSelected(item);
-    }
-
     private void initViews() {
         android.util.Log.d("SalesActivity", "Initializing views");
         rvProductsSale = findViewById(R.id.rv_products_sale);
@@ -134,23 +108,16 @@ public class SalesActivity extends AppCompatActivity implements
         etSearchProducts = findViewById(R.id.et_search_products);
         toolbar = findViewById(R.id.toolbar);
         tvCartBadgeToolbar = findViewById(R.id.tv_cart_badge_toolbar);
-        btnToolbarCart = findViewById(R.id.btn_toolbar_cart);
-        
-        // Initialize Bottom Action Panel Components
+    btnToolbarCart = findViewById(R.id.btn_toolbar_cart);
+    // tvToolbarUsername removed from layout
+        ivProfileIcon = findViewById(R.id.iv_profile_icon);
         cartActionPanel = findViewById(R.id.cart_action_panel);
         btnSaveCart = findViewById(R.id.btn_save_cart);
         btnCheckout = findViewById(R.id.btn_checkout);
         tvSaveCartBadge = findViewById(R.id.tv_save_cart_badge);
         tvCheckoutBadge = findViewById(R.id.tv_checkout_badge);
-        
-        // Check for null views to prevent crashes
-        if (rvProductsSale == null) {
-            android.util.Log.e("SalesActivity", "Products RecyclerView is null!");
-            Toast.makeText(this, "Error: Products view not found", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-        
+        ivProfileIcon.setOnClickListener(v -> showLogoutDialog());
+        setupToolbar();
         // Check other views
         if (rvCategories == null || etSearchProducts == null || 
             toolbar == null || tvCartBadgeToolbar == null || 
@@ -160,7 +127,6 @@ public class SalesActivity extends AppCompatActivity implements
             finish();
             return;
         }
-        
         android.util.Log.d("SalesActivity", "All views initialized successfully");
     }
 
@@ -519,5 +485,14 @@ public class SalesActivity extends AppCompatActivity implements
         finish();
         
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showLogoutDialog() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Logout", (dialog, which) -> logout())
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 }

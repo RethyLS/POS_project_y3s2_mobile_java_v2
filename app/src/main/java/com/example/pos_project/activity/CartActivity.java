@@ -39,10 +39,8 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private Toolbar toolbar;
     private RecyclerView rvCartItems;
     private LinearLayout layoutEmptyCart;
-    private EditText etCustomerName, etAmountPaid;
     private TextView tvTotalAmount;
     private Button btnClearCart, btnCheckout, btnContinueShopping;
-    private RadioGroup rgPaymentMethod;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems;
@@ -69,13 +67,10 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         toolbar = findViewById(R.id.toolbar);
         rvCartItems = findViewById(R.id.rv_cart_items);
         layoutEmptyCart = findViewById(R.id.layout_empty_cart);
-        etCustomerName = findViewById(R.id.et_customer_name);
-        etAmountPaid = findViewById(R.id.et_amount_paid);
         tvTotalAmount = findViewById(R.id.tv_total_amount);
         btnClearCart = findViewById(R.id.btn_clear_cart);
         btnCheckout = findViewById(R.id.btn_checkout);
         btnContinueShopping = findViewById(R.id.btn_continue_shopping);
-        rgPaymentMethod = findViewById(R.id.rg_payment_method);
     }
 
     private void initDatabase() {
@@ -102,21 +97,75 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
 
     private void setupClickListeners() {
         btnClearCart.setOnClickListener(v -> clearCart());
-        btnCheckout.setOnClickListener(v -> processCheckout());
+        btnCheckout.setOnClickListener(v -> showCheckoutDialog());
         btnContinueShopping.setOnClickListener(v -> finish());
+    }
 
-        etAmountPaid.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    private void showCheckoutDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_checkout, null);
+        EditText etCustomerName = dialogView.findViewById(R.id.et_customer_name);
+        EditText etAmountPaid = dialogView.findViewById(R.id.et_amount_paid);
+        Button btnConfirmCheckout = dialogView.findViewById(R.id.btn_confirm_checkout);
+        androidx.cardview.widget.CardView btnPaymentCash = dialogView.findViewById(R.id.btn_payment_cash);
+        androidx.cardview.widget.CardView btnPaymentCard = dialogView.findViewById(R.id.btn_payment_card);
+        androidx.cardview.widget.CardView btnPaymentMobile = dialogView.findViewById(R.id.btn_payment_mobile);
+        androidx.cardview.widget.CardView btnPaymentCredit = dialogView.findViewById(R.id.btn_payment_credit);
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                updateCheckoutButton();
+        final String[] selectedPaymentMethod = {"cash"};
+
+        View.OnClickListener paymentClickListener = v -> {
+            btnPaymentCash.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+            btnPaymentCard.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+            btnPaymentMobile.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+            btnPaymentCredit.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+            if (v == btnPaymentCash) {
+                selectedPaymentMethod[0] = "cash";
+                btnPaymentCash.setCardBackgroundColor(getResources().getColor(R.color.success));
+            } else if (v == btnPaymentCard) {
+                selectedPaymentMethod[0] = "card";
+                btnPaymentCard.setCardBackgroundColor(getResources().getColor(R.color.success));
+            } else if (v == btnPaymentMobile) {
+                selectedPaymentMethod[0] = "mobile";
+                btnPaymentMobile.setCardBackgroundColor(getResources().getColor(R.color.success));
+            } else if (v == btnPaymentCredit) {
+                selectedPaymentMethod[0] = "credit";
+                btnPaymentCredit.setCardBackgroundColor(getResources().getColor(R.color.success));
             }
+        };
+        btnPaymentCash.setOnClickListener(paymentClickListener);
+        btnPaymentCard.setOnClickListener(paymentClickListener);
+        btnPaymentMobile.setOnClickListener(paymentClickListener);
+        btnPaymentCredit.setOnClickListener(paymentClickListener);
 
-            @Override
-            public void afterTextChanged(Editable s) {}
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnConfirmCheckout.setOnClickListener(v -> {
+            String customerName = etCustomerName.getText().toString().trim();
+            String amountPaidStr = etAmountPaid.getText().toString().trim();
+            String paymentMethod = selectedPaymentMethod[0];
+
+            if (amountPaidStr.isEmpty()) {
+                etAmountPaid.setError("Please enter amount paid");
+                return;
+            }
+            double amountPaid;
+            try {
+                amountPaid = Double.parseDouble(amountPaidStr);
+            } catch (NumberFormatException e) {
+                etAmountPaid.setError("Invalid amount");
+                return;
+            }
+            if (amountPaid < totalAmount) {
+                etAmountPaid.setError("Amount paid is less than total");
+                return;
+            }
+            dialog.dismiss();
+            processCheckout(customerName, amountPaid, paymentMethod);
         });
+        dialog.show();
     }
 
     private void loadCartItems() {
@@ -196,85 +245,45 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     }
 
     private void updateCheckoutButton() {
-        String amountPaidStr = etAmountPaid.getText().toString().trim();
-        boolean hasItems = !cartItems.isEmpty();
-        boolean hasValidAmount = false;
-
-        if (!amountPaidStr.isEmpty()) {
-            try {
-                double amountPaid = Double.parseDouble(amountPaidStr);
-                hasValidAmount = amountPaid >= totalAmount;
-            } catch (NumberFormatException e) {
-                hasValidAmount = false;
-            }
-        }
-
-        btnCheckout.setEnabled(hasItems && hasValidAmount);
+        boolean hasItems = cartItems != null && !cartItems.isEmpty();
+        btnCheckout.setEnabled(hasItems);
     }
 
-    private void processCheckout() {
-        String customerName = etCustomerName.getText().toString().trim();
-        String amountPaidStr = etAmountPaid.getText().toString().trim();
+    private void processCheckout(String customerName, double amountPaid, String paymentMethod) {
+        String saleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         
-        if (amountPaidStr.isEmpty()) {
-            Toast.makeText(this, "Please enter amount paid", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            double amountPaid = Double.parseDouble(amountPaidStr);
-            
-            if (amountPaid < totalAmount) {
-                Toast.makeText(this, "Amount paid is less than total", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String paymentMethod = getSelectedPaymentMethod();
-            String saleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-            
-            Sale sale = new Sale(saleDate, totalAmount, amountPaid, paymentMethod, 1, customerName);
-            
-            executor.execute(() -> {
-                try {
-                    // Insert sale
-                    long saleId = database.saleDao().insert(sale);
+        Sale sale = new Sale(saleDate, totalAmount, amountPaid, paymentMethod, 1, customerName);
+        
+        executor.execute(() -> {
+            try {
+                // Insert sale
+                long saleId = database.saleDao().insert(sale);
+                
+                // Insert sale items and update product quantities
+                List<SaleItem> saleItems = new ArrayList<>();
+                for (CartItem cartItem : cartItems) {
+                    SaleItem saleItem = new SaleItem((int) saleId, cartItem.getProductId(), 
+                            cartItem.getProductName(), cartItem.getUnitPrice(), cartItem.getQuantity());
+                    saleItems.add(saleItem);
                     
-                    // Insert sale items and update product quantities
-                    List<SaleItem> saleItems = new ArrayList<>();
-                    for (CartItem cartItem : cartItems) {
-                        SaleItem saleItem = new SaleItem((int) saleId, cartItem.getProductId(), 
-                                cartItem.getProductName(), cartItem.getUnitPrice(), cartItem.getQuantity());
-                        saleItems.add(saleItem);
-                        
-                        // Reduce product quantity
-                        database.productDao().reduceProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
-                    }
-                    database.saleItemDao().insertAll(saleItems);
-                    
-                    runOnUiThread(() -> {
-                        double change = amountPaid - totalAmount;
-                        showCheckoutSuccess(change);
-                        clearCartAfterSale();
-                    });
-                    
-                } catch (Exception e) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(CartActivity.this, "Error processing sale: " + e.getMessage(), 
-                                Toast.LENGTH_SHORT).show();
-                    });
+                    // Reduce product quantity
+                    database.productDao().reduceProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
                 }
-            });
-            
-        } catch (NumberFormatException e) {
-            Toast.makeText(this, "Invalid amount format", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private String getSelectedPaymentMethod() {
-        int selectedId = rgPaymentMethod.getCheckedRadioButtonId();
-        if (selectedId == R.id.rb_cash) return "cash";
-        else if (selectedId == R.id.rb_card) return "card";
-        else return "digital";
+                database.saleItemDao().insertAll(saleItems);
+                
+                runOnUiThread(() -> {
+                    double change = amountPaid - totalAmount;
+                    showCheckoutSuccess(change);
+                    clearCartAfterSale();
+                });
+                
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(CartActivity.this, "Error processing sale: " + e.getMessage(), 
+                            Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void showCheckoutSuccess(double change) {
@@ -285,8 +294,8 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 .setTitle("Sale Complete")
                 .setMessage(message)
                 .setPositiveButton("OK", (dialog, which) -> {
-                    // Return to main activity
-                    Intent intent = new Intent(this, com.example.pos_project.MainActivity.class);
+                    // Return to sales activity
+                    Intent intent = new Intent(this, com.example.pos_project.activity.SalesActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     finish();
@@ -300,9 +309,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         updateTotalAmount();
         updateUI();
         CartManager.getInstance().clearCart();
-        etCustomerName.setText("");
-        etAmountPaid.setText("");
-        rgPaymentMethod.check(R.id.rb_cash);
+        // No need to clear dialog views here
     }
 
     @Override
