@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,7 +43,7 @@ public class SalesActivity extends AppCompatActivity implements
     
     // Bottom Action Panel Components
     private androidx.cardview.widget.CardView cartActionPanel;
-    private Button btnSaveCart, btnCheckout;
+    private TextView btnSaveCart, btnCheckout;
     private TextView tvSaveCartBadge, tvCheckoutBadge;
 
     private SaleProductAdapter productAdapter;

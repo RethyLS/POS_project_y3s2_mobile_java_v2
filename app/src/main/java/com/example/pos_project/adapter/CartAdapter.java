@@ -3,7 +3,6 @@ package com.example.pos_project.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -54,16 +53,15 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
     class CartViewHolder extends RecyclerView.ViewHolder {
         private ImageView ivProductImage;
-        private TextView tvProductName, tvUnitPrice, tvQuantity, tvTotalPrice;
-        private Button btnIncrease, btnDecrease, btnRemove;
+        private TextView tvProductName, tvTotalPrice, tvQuantity;
+        private TextView btnIncrease, btnDecrease, btnRemove;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
             ivProductImage = itemView.findViewById(R.id.iv_cart_product_image);
             tvProductName = itemView.findViewById(R.id.tv_cart_product_name);
-            tvUnitPrice = itemView.findViewById(R.id.tv_cart_unit_price);
-            tvQuantity = itemView.findViewById(R.id.tv_cart_quantity);
             tvTotalPrice = itemView.findViewById(R.id.tv_cart_total_price);
+            tvQuantity = itemView.findViewById(R.id.tv_cart_quantity);
             btnIncrease = itemView.findViewById(R.id.btn_increase_quantity);
             btnDecrease = itemView.findViewById(R.id.btn_decrease_quantity);
             btnRemove = itemView.findViewById(R.id.btn_remove_item);
@@ -71,9 +69,8 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
         public void bind(CartItem item, int position) {
             tvProductName.setText(item.getProductName());
-            tvUnitPrice.setText(String.format("$%.2f each", item.getUnitPrice()));
-            tvQuantity.setText(String.valueOf(item.getQuantity()));
             tvTotalPrice.setText(String.format("$%.2f", item.getTotalPrice()));
+            tvQuantity.setText(String.valueOf(item.getQuantity()));
 
             // Load product image
             String baseUrl = "http://10.0.2.2:8000/storage/";
@@ -102,7 +99,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             });
 
             btnDecrease.setOnClickListener(v -> {
-                if (listener != null) {
+                if (listener != null && item.getQuantity() > 1) {
                     listener.onDecreaseQuantity(item, position);
                 }
             });
@@ -113,8 +110,14 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                 }
             });
 
-            // Disable decrease button if quantity is 1
-            btnDecrease.setEnabled(item.getQuantity() > 1);
+            // Handle visual state for decrease button when quantity is 1
+            if (item.getQuantity() <= 1) {
+                btnDecrease.setAlpha(0.5f);
+                btnDecrease.setClickable(false);
+            } else {
+                btnDecrease.setAlpha(1.0f);
+                btnDecrease.setClickable(true);
+            }
         }
     }
 }

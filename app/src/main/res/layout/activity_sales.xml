@@ -167,16 +167,19 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp">
 
-                <Button
+                <TextView
                     android:id="@+id/btn_save_cart"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:text="Save Cart"
                     android:textColor="@android:color/black"
                     android:background="@drawable/button_white_black_border"
-                    
                     android:drawablePadding="8dp"
-                    android:gravity="center" />
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
                 <!-- Save Cart Badge -->
                 <TextView
@@ -203,16 +206,19 @@
                 android:layout_weight="1"
                 android:layout_marginStart="8dp">
 
-                <Button
+                <TextView
                     android:id="@+id/btn_checkout"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:text="Checkout"
                     android:textColor="@android:color/white"
                     android:background="@drawable/button_primary"
-
                     android:drawablePadding="8dp"
-                    android:gravity="center" />
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
                 <!-- Checkout Badge -->
                 <TextView
@@ -247,14 +253,18 @@
         android:id="@+id/ll_checkout_section">
 
         <!-- Continue Shopping Button -->
-        <Button
+        <TextView
             android:id="@+id/btn_continue_shopping"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:text="Continue Shopping"
             android:background="@drawable/button_white_black_border"
             android:textColor="@android:color/black"
-            android:gravity="center" />
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <!-- Checkout Card -->
         <androidx.cardview.widget.CardView

@@ -281,8 +281,8 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 database.saleItemDao().insertAll(saleItems);
                 
                 runOnUiThread(() -> {
-                    double change = amountPaid - totalAmount;
-                    showCheckoutSuccess(change);
+                    Toast.makeText(CartActivity.this, "Sale recorded successfully", Toast.LENGTH_SHORT).show();
+                    showSaleCompleteDialog(totalAmount, amountPaid, paymentMethod);
                     clearCartAfterSale();
                 });
                 
@@ -293,6 +293,45 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 });
             }
         });
+    }
+
+    private void showSaleCompleteDialog(double totalAmount, double amountPaid, String paymentMethod) {
+        double change = amountPaid - totalAmount;
+        
+        // Create custom dialog view
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_custom, null);
+        
+        // Find views
+        TextView titleText = dialogView.findViewById(R.id.dialog_title);
+        TextView messageText = dialogView.findViewById(R.id.dialog_message);
+        TextView cancelBtn = dialogView.findViewById(R.id.dialog_cancel_btn);
+        TextView confirmBtn = dialogView.findViewById(R.id.dialog_confirm_btn);
+        
+        // Set content
+        titleText.setText("Sale Complete");
+        messageText.setText(String.format(Locale.getDefault(),
+                "Payment Method: %s\nTotal: $%.2f\nPaid: $%.2f\nChange: $%.2f",
+                paymentMethod.toUpperCase(), totalAmount, amountPaid, change));
+        
+        // Hide cancel button for this dialog
+        cancelBtn.setVisibility(View.GONE);
+        confirmBtn.setText("OK");
+        
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+        
+        confirmBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            // Return to sales activity
+            Intent intent = new Intent(this, com.example.pos_project.activity.SalesActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+            finish();
+        });
+        
+        dialog.show();
     }
 
     private void showCheckoutSuccess(double change) {
