@@ -30,6 +30,26 @@
                 android:background="@color/background"
                 android:contentDescription="Product Image" />
 
+            <!-- Stock Count Box -->
+            <TextView
+                android:id="@+id/tv_stock_count_overlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="8dp"
+                android:background="@android:color/white"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="10"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:elevation="2dp"
+                android:minWidth="24dp"
+                android:gravity="center" />
+
         </FrameLayout>
 
         <!-- Bottom Section with Item Info -->

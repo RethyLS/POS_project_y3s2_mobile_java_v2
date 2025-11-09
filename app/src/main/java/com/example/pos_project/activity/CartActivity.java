@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -40,7 +39,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private RecyclerView rvCartItems;
     private LinearLayout layoutEmptyCart;
     private TextView tvTotalAmount;
-    private Button btnClearCart, btnCheckout, btnContinueShopping;
+    private TextView btnClearCart, btnCheckout, btnContinueShopping;
 
     private CartAdapter cartAdapter;
     private List<CartItem> cartItems;
@@ -83,6 +82,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);  // Disable default title
         }
         
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
@@ -105,37 +105,46 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_checkout, null);
         EditText etCustomerName = dialogView.findViewById(R.id.et_customer_name);
         EditText etAmountPaid = dialogView.findViewById(R.id.et_amount_paid);
-        Button btnConfirmCheckout = dialogView.findViewById(R.id.btn_confirm_checkout);
-        androidx.cardview.widget.CardView btnPaymentCash = dialogView.findViewById(R.id.btn_payment_cash);
-        androidx.cardview.widget.CardView btnPaymentCard = dialogView.findViewById(R.id.btn_payment_card);
-        androidx.cardview.widget.CardView btnPaymentMobile = dialogView.findViewById(R.id.btn_payment_mobile);
-        androidx.cardview.widget.CardView btnPaymentCredit = dialogView.findViewById(R.id.btn_payment_credit);
+        TextView btnConfirmCheckout = dialogView.findViewById(R.id.btn_confirm_checkout);
+        TextView btnPaymentCash = dialogView.findViewById(R.id.btn_payment_cash);
+        TextView btnPaymentCard = dialogView.findViewById(R.id.btn_payment_card);
+        TextView btnPaymentMobile = dialogView.findViewById(R.id.btn_payment_mobile);
+        TextView btnPaymentCredit = dialogView.findViewById(R.id.btn_payment_credit);
 
         final String[] selectedPaymentMethod = {"cash"};
 
         View.OnClickListener paymentClickListener = v -> {
-            btnPaymentCash.setCardBackgroundColor(getResources().getColor(android.R.color.white));
-            btnPaymentCard.setCardBackgroundColor(getResources().getColor(android.R.color.white));
-            btnPaymentMobile.setCardBackgroundColor(getResources().getColor(android.R.color.white));
-            btnPaymentCredit.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+            // Reset all buttons to unselected state (white background with primary border)
+            setPaymentButtonUnselected(btnPaymentCash);
+            setPaymentButtonUnselected(btnPaymentCard);
+            setPaymentButtonUnselected(btnPaymentMobile);
+            setPaymentButtonUnselected(btnPaymentCredit);
+            
+            // Set selected button to active state (primary background, white text)
             if (v == btnPaymentCash) {
                 selectedPaymentMethod[0] = "cash";
-                btnPaymentCash.setCardBackgroundColor(getResources().getColor(R.color.success));
+                setPaymentButtonSelected(btnPaymentCash);
             } else if (v == btnPaymentCard) {
                 selectedPaymentMethod[0] = "card";
-                btnPaymentCard.setCardBackgroundColor(getResources().getColor(R.color.success));
+                setPaymentButtonSelected(btnPaymentCard);
             } else if (v == btnPaymentMobile) {
                 selectedPaymentMethod[0] = "mobile";
-                btnPaymentMobile.setCardBackgroundColor(getResources().getColor(R.color.success));
+                setPaymentButtonSelected(btnPaymentMobile);
             } else if (v == btnPaymentCredit) {
                 selectedPaymentMethod[0] = "credit";
-                btnPaymentCredit.setCardBackgroundColor(getResources().getColor(R.color.success));
+                setPaymentButtonSelected(btnPaymentCredit);
             }
         };
         btnPaymentCash.setOnClickListener(paymentClickListener);
         btnPaymentCard.setOnClickListener(paymentClickListener);
         btnPaymentMobile.setOnClickListener(paymentClickListener);
         btnPaymentCredit.setOnClickListener(paymentClickListener);
+
+        // Set initial state: Cash selected, others unselected
+        setPaymentButtonSelected(btnPaymentCash);
+        setPaymentButtonUnselected(btnPaymentCard);
+        setPaymentButtonUnselected(btnPaymentMobile);
+        setPaymentButtonUnselected(btnPaymentCredit);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
@@ -310,6 +319,32 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         updateUI();
         CartManager.getInstance().clearCart();
         // No need to clear dialog views here
+    }
+
+    private void updatePaymentButtonTextColor(androidx.cardview.widget.CardView cardView, int colorRes) {
+        LinearLayout layout = (LinearLayout) cardView.getChildAt(0);
+        for (int i = 0; i < layout.getChildCount(); i++) {
+            if (layout.getChildAt(i) instanceof TextView) {
+                TextView textView = (TextView) layout.getChildAt(i);
+                textView.setTextColor(getResources().getColor(colorRes));
+            }
+        }
+    }
+
+    private void setPaymentButtonSelected(TextView button) {
+        // Primary background with white text (current selected style)
+        button.setBackgroundResource(R.drawable.button_primary_rounded);
+        button.setTextColor(getResources().getColor(android.R.color.white));
+    }
+
+    private void setPaymentButtonUnselected(TextView button) {
+        // White background with primary border (same as Back button style)
+        button.setBackgroundResource(R.drawable.button_white_border_primary);
+        button.setTextColor(getResources().getColor(android.R.color.black));
+    }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
     @Override

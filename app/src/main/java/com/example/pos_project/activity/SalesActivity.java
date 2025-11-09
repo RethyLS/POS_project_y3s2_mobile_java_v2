@@ -38,7 +38,7 @@ public class SalesActivity extends AppCompatActivity implements
     private RecyclerView rvProductsSale, rvCategories;
     private EditText etSearchProducts;
     private Toolbar toolbar;
-    private TextView tvCartBadge, tvCartBadgeToolbar;
+    private TextView tvCartBadge, tvCartBadgeToolbar, tvUsername;
     private androidx.appcompat.widget.AppCompatImageButton btnToolbarCart;
     private android.widget.ImageView ivProfileIcon;
     
@@ -66,6 +66,7 @@ public class SalesActivity extends AppCompatActivity implements
         try {
             setContentView(R.layout.activity_sales);
             initViews();
+            setupUsername();
             setupToolbar();
             initDatabase();
             setupRecyclerViews();
@@ -108,7 +109,8 @@ public class SalesActivity extends AppCompatActivity implements
         etSearchProducts = findViewById(R.id.et_search_products);
         toolbar = findViewById(R.id.toolbar);
         tvCartBadgeToolbar = findViewById(R.id.tv_cart_badge_toolbar);
-    btnToolbarCart = findViewById(R.id.btn_toolbar_cart);
+        btnToolbarCart = findViewById(R.id.btn_toolbar_cart);
+        tvUsername = findViewById(R.id.tv_username);
     // tvToolbarUsername removed from layout
         ivProfileIcon = findViewById(R.id.iv_profile_icon);
         cartActionPanel = findViewById(R.id.cart_action_panel);
@@ -128,6 +130,25 @@ public class SalesActivity extends AppCompatActivity implements
             return;
         }
         android.util.Log.d("SalesActivity", "All views initialized successfully");
+    }
+
+    private void setupUsername() {
+        AuthManager authManager = AuthManager.getInstance(this);
+        String userName = authManager.getUserName();
+        
+        if (userName != null && !userName.isEmpty()) {
+            tvUsername.setText(userName);
+        } else {
+            // Fallback to email if name is not available
+            String userEmail = authManager.getUserEmail();
+            if (userEmail != null && !userEmail.isEmpty()) {
+                // Extract name from email (part before @)
+                String displayName = userEmail.split("@")[0];
+                tvUsername.setText(displayName);
+            } else {
+                tvUsername.setText("User");
+            }
+        }
     }
 
     private void initDatabase() {
@@ -488,11 +509,24 @@ public class SalesActivity extends AppCompatActivity implements
     }
 
     private void showLogoutDialog() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.CustomDialogTheme);
+        androidx.appcompat.app.AlertDialog dialog = builder
             .setTitle("Logout")
             .setMessage("Are you sure you want to logout?")
-            .setPositiveButton("Logout", (dialog, which) -> logout())
+            .setPositiveButton("Logout", (d, which) -> logout())
             .setNegativeButton("Cancel", null)
-            .show();
+            .create();
+        
+        dialog.show();
+        
+        // Set dialog width to 80% of screen width
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            android.view.WindowManager.LayoutParams layoutParams = window.getAttributes();
+            android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            layoutParams.width = (int) (displayMetrics.widthPixels * 0.8);
+            window.setAttributes(layoutParams);
+        }
     }
 }

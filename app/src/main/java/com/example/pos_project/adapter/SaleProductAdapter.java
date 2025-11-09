@@ -57,7 +57,7 @@ public class SaleProductAdapter extends RecyclerView.Adapter<SaleProductAdapter.
     }
 
     class SaleProductViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvProductName, tvProductPrice;
+        private TextView tvProductName, tvProductPrice, tvStockCountOverlay;
         private android.widget.ImageButton btnAddToCart;
         private android.widget.ImageView ivProductImage;
 
@@ -65,6 +65,7 @@ public class SaleProductAdapter extends RecyclerView.Adapter<SaleProductAdapter.
             super(itemView);
             tvProductName = itemView.findViewById(R.id.tv_product_name);
             tvProductPrice = itemView.findViewById(R.id.tv_product_price);
+            tvStockCountOverlay = itemView.findViewById(R.id.tv_stock_count_overlay);
             btnAddToCart = itemView.findViewById(R.id.btn_add_to_cart);
             ivProductImage = itemView.findViewById(R.id.iv_product_image);
         }
@@ -72,6 +73,10 @@ public class SaleProductAdapter extends RecyclerView.Adapter<SaleProductAdapter.
         public void bind(Product product) {
             tvProductName.setText(product.getName());
             tvProductPrice.setText(String.format("$%.2f", product.getPrice()));
+            
+            // Set stock count overlay - ensure it's never negative
+            int stockCount = Math.max(0, product.getQuantity());
+            tvStockCountOverlay.setText(String.valueOf(stockCount));
 
             // Load product image with Glide
             android.util.Log.d("SaleProductAdapter", "Product: " + product.getName() + ", Image URL: " + product.getImage());
@@ -118,8 +123,8 @@ public class SaleProductAdapter extends RecyclerView.Adapter<SaleProductAdapter.
                 ivProductImage.setImageResource(R.drawable.placeholder_image);
             }
 
-            // Enable/disable add to cart based on stock
-            btnAddToCart.setEnabled(product.getQuantity() > 0);
+            // Style the add to cart button based on stock (keep enabled for click handling)
+            btnAddToCart.setEnabled(true);  // Always keep enabled to handle clicks
             if (product.getQuantity() == 0) {
                 btnAddToCart.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                     itemView.getContext().getColor(android.R.color.darker_gray)));
@@ -131,12 +136,42 @@ public class SaleProductAdapter extends RecyclerView.Adapter<SaleProductAdapter.
             }
 
             btnAddToCart.setOnClickListener(v -> {
-                if (listener != null && product.getQuantity() > 0) {
-                    listener.onAddToCartClick(product);
+                android.util.Log.d("SaleProductAdapter", "Add to cart clicked for product: " + product.getName() + ", quantity: " + product.getQuantity());
+                if (listener != null) {
+                    if (product.getQuantity() > 0) {
+                        android.util.Log.d("SaleProductAdapter", "Adding to cart: " + product.getName());
+                        listener.onAddToCartClick(product);
+                    } else {
+                        android.util.Log.d("SaleProductAdapter", "Showing out of stock dialog for: " + product.getName());
+                        showOutOfStockDialog(v.getContext(), product.getName());
+                    }
                 }
             });
 
 
+        }
+    }
+
+    private void showOutOfStockDialog(android.content.Context context, String productName) {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(context, R.style.CustomDialogTheme);
+        androidx.appcompat.app.AlertDialog dialog = builder
+            .setTitle("Out of Stock")
+            .setMessage("Sorry, \"" + productName + "\" is currently out of stock.")
+            .setPositiveButton("OK", null)
+            .create();
+        
+        dialog.show();
+        
+        // Set dialog width to 80% of screen width
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            android.view.WindowManager.LayoutParams layoutParams = window.getAttributes();
+            android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
+            if (context instanceof android.app.Activity) {
+                ((android.app.Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                layoutParams.width = (int) (displayMetrics.widthPixels * 0.8);
+                window.setAttributes(layoutParams);
+            }
         }
     }
 }

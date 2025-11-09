@@ -6,4 +6,20 @@
     </style>
 
     <style name="Theme.POS_Project" parent="Base.Theme.POS_Project" />
+
+    <!-- Custom Dialog Theme -->
+    <style name="CustomDialogTheme" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:buttonBarButtonStyle">@style/CustomDialogButton</item>
+    </style>
+
+    <!-- Custom Dialog Button Style -->
+    <style name="CustomDialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>
