@@ -88,6 +88,11 @@ public class Product {
     
     // For local database storage
     private String categoryName;
+    
+    // Alternative field mapping for category name directly from API
+    @SerializedName("category_name")
+    @Expose
+    private String apiCategoryName;
     private String storeName;
     private boolean isActive = true;
 
@@ -172,8 +177,24 @@ public class Product {
         }
     }
 
-    public String getCategoryName() { return categoryName; }
+    public String getCategoryName() { 
+        // Try multiple sources for category name
+        if (categoryName != null && !categoryName.isEmpty()) {
+            return categoryName;
+        }
+        if (apiCategoryName != null && !apiCategoryName.isEmpty()) {
+            return apiCategoryName;
+        }
+        if (category != null && category.getName() != null && !category.getName().isEmpty()) {
+            return category.getName();
+        }
+        return "Uncategorized"; // Fallback
+    }
+    
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    
+    public String getApiCategoryName() { return apiCategoryName; }
+    public void setApiCategoryName(String apiCategoryName) { this.apiCategoryName = apiCategoryName; }
 
     public String getStoreName() { return storeName; }
     public void setStoreName(String storeName) { this.storeName = storeName; }

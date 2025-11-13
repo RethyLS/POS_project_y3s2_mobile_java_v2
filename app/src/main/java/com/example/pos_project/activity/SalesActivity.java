@@ -159,11 +159,7 @@ public class SalesActivity extends AppCompatActivity implements
             CartManager.resetInstance();
             
             database = POSDatabase.getInstance(this);
-            // Clear any old data from the database
             executor = Executors.newFixedThreadPool(4);
-            executor.execute(() -> {
-                database.productDao().deleteAll(); // Clear old data
-            });
             productRepository = new ProductRepository(this);
         } catch (Exception e) {
             Toast.makeText(this, "Error initializing database: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -194,10 +190,7 @@ public class SalesActivity extends AppCompatActivity implements
             // Categories RecyclerView - Horizontal
             categories = new ArrayList<>();
             categories.add("All");
-            categories.add("Food");
-            categories.add("Drinks");
-            categories.add("Electronics");
-            categories.add("Clothing");
+            // Categories will be populated dynamically from actual products
             categoryAdapter = new CategoryAdapter(categories, this);
             
             if (rvCategories != null) {
@@ -360,6 +353,13 @@ public class SalesActivity extends AppCompatActivity implements
                         android.util.Log.d("SalesActivity", "Products loaded successfully. Count: " + products.size());
                         isLoadingProducts = false;
                         
+                        // Debug: Log all products and their categories with detailed info
+                        for (int i = 0; i < products.size(); i++) {
+                            Product product = products.get(i);
+                            android.util.Log.d("SalesActivity", String.format("Product %d: '%s' | Category: '%s' | API ID: %d", 
+                                i + 1, product.getName(), product.getCategoryName(), product.getApiId()));
+                        }
+                        
                         // Hide loading progress bar
                         if (progressLoading != null) {
                             progressLoading.setVisibility(View.GONE);
@@ -402,7 +402,10 @@ public class SalesActivity extends AppCompatActivity implements
                         progressLoading.setVisibility(View.GONE);
                     }
                     
+                    android.util.Log.e("SalesActivity", "Error loading products: " + error);
                     Toast.makeText(SalesActivity.this, "Error loading products: " + error, Toast.LENGTH_SHORT).show();
+                    
+                    // Keep existing categories on error - don't clear them
                 });
             }
         });
@@ -410,22 +413,45 @@ public class SalesActivity extends AppCompatActivity implements
 
     private void updateCategoriesFromProducts(List<Product> products) {
         try {
-            // Clear existing categories except "All"
-            categories.clear();
-            categories.add("All");
+            // Create a new list to build categories from actual products
+            List<String> newCategories = new ArrayList<>();
+            newCategories.add("All");
+            
+            android.util.Log.d("SalesActivity", "Starting category update with " + products.size() + " products");
             
             // Add unique categories from products
             for (Product product : products) {
                 String categoryName = product.getCategoryName();
-                if (categoryName != null && !categoryName.isEmpty() && !categories.contains(categoryName)) {
-                    categories.add(categoryName);
+                android.util.Log.d("SalesActivity", "Product '" + product.getName() + "' category: '" + categoryName + "'");
+                
+                if (categoryName != null && !categoryName.trim().isEmpty() && 
+                    !categoryName.equals("null") && !newCategories.contains(categoryName)) {
+                    newCategories.add(categoryName);
+                    android.util.Log.d("SalesActivity", "Added category: '" + categoryName + "'");
+                } else {
+                    android.util.Log.w("SalesActivity", "Skipping invalid category: '" + categoryName + "' for product: " + product.getName());
                 }
             }
             
-            if (categoryAdapter != null) {
-                categoryAdapter.notifyDataSetChanged();
-            }
+            // Always update with actual categories from products
+            categories.clear();
+            categories.addAll(newCategories);
+            
+            android.util.Log.d("SalesActivity", "Total categories found: " + (categories.size() - 1) + " (excluding 'All')");
+            android.util.Log.d("SalesActivity", "Final categories: " + categories.toString());
+            
+            // Update on UI thread
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (categoryAdapter != null) {
+                        categoryAdapter.notifyDataSetChanged();
+                        android.util.Log.d("SalesActivity", "Category adapter updated on UI thread");
+                    }
+                }
+            });
         } catch (Exception e) {
+            android.util.Log.e("SalesActivity", "Error updating categories: " + e.getMessage());
             e.printStackTrace();
         }
     }

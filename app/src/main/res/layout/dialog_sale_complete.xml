@@ -41,32 +41,16 @@
             android:gravity="center"
             android:layout_marginTop="16dp">
 
-            <!-- Receipt Button -->
-            <TextView
-                android:id="@+id/btn_continue_to_receipt"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="16dp"
-                android:text="receipt"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary"
-                android:gravity="center"
-                android:clickable="true"
-                android:focusable="true" />
-
             <!-- OK Button -->
             <TextView
-                android:id="@+id/btn_skip_receipt"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="16dp"
-                android:text="ok"
+                android:id="@+id/btn_ok"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="OK"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"
+                android:background="@drawable/button_primary_rounded"
+                android:textColor="#FFFFFF"
                 android:gravity="center"
                 android:clickable="true"
                 android:focusable="true" />

@@ -8,6 +8,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -212,7 +213,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         TextView tvSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
         TextView tvSeller = dialogView.findViewById(R.id.tv_receipt_seller);
         LinearLayout customerPaymentInfo = dialogView.findViewById(R.id.customer_payment_info);
-        TextView btnConfirmCheckout = dialogView.findViewById(R.id.btn_receipt_confirm_checkout);
+        ImageView btnCloseReceipt = dialogView.findViewById(R.id.btn_close_receipt);
 
         // Set seller name (user login name)
         String sellerName = com.example.pos_project.auth.AuthManager.getInstance(this).getUserName();
@@ -266,7 +267,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 .setCancelable(true)
                 .create();
 
-        btnConfirmCheckout.setOnClickListener(v -> {
+        btnCloseReceipt.setOnClickListener(v -> {
             dialog.dismiss();
             processCheckout(customerName, amountPaid, paymentMethod);
         });

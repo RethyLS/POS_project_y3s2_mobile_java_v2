@@ -16,7 +16,7 @@ import java.util.List;
 
 public class SaleCompleteDialog extends Dialog {
 
-    private TextView btnContinueToReceipt, btnSkipReceipt;
+    private TextView btnOk;
 
     // Data received from CartActivity
     private String customerName;
@@ -55,19 +55,14 @@ public class SaleCompleteDialog extends Dialog {
     }
 
     private void initViews() {
-        btnContinueToReceipt = findViewById(R.id.btn_continue_to_receipt);
-        btnSkipReceipt = findViewById(R.id.btn_skip_receipt);
+        btnOk = findViewById(R.id.btn_ok);
     }
 
     private void setupClickListeners() {
-        btnContinueToReceipt.setOnClickListener(v -> {
-            // Show receipt dialog
+        btnOk.setOnClickListener(v -> {
+            // Auto-show receipt dialog
+            dismiss(); // Close current dialog first
             showReceiptDialog();
-        });
-
-        btnSkipReceipt.setOnClickListener(v -> {
-            // Process checkout directly without showing receipt
-            processCheckout();
         });
     }
 
@@ -80,7 +75,7 @@ public class SaleCompleteDialog extends Dialog {
         android.widget.TextView tvSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
         android.widget.TextView tvSeller = dialogView.findViewById(R.id.tv_receipt_seller);
         android.widget.LinearLayout customerPaymentInfo = dialogView.findViewById(R.id.customer_payment_info);
-        android.widget.TextView btnConfirmCheckout = dialogView.findViewById(R.id.btn_receipt_confirm_checkout);
+        android.widget.ImageView btnCloseReceipt = dialogView.findViewById(R.id.btn_close_receipt);
 
         // Set seller name (user login name)
         String sellerName = com.example.pos_project.auth.AuthManager.getInstance(getContext()).getUserName();
@@ -134,7 +129,7 @@ public class SaleCompleteDialog extends Dialog {
                 .setCancelable(true)
                 .create();
 
-        btnConfirmCheckout.setOnClickListener(v -> {
+        btnCloseReceipt.setOnClickListener(v -> {
             dialog.dismiss();
             processCheckout();
         });
