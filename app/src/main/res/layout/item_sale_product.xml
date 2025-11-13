@@ -5,91 +5,106 @@
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
     app:cardCornerRadius="8dp"
-    app:cardElevation="4dp"
-    app:cardBackgroundColor="@color/card_background"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@android:color/white"
     android:clickable="true"
     android:foreground="?android:attr/selectableItemBackground">
 
-    <LinearLayout
+    <!-- Add wrapper with border -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:background="@drawable/card_border">
 
-        <FrameLayout
+        <!-- Change LinearLayout to RelativeLayout for better control -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="120dp">
+            android:layout_height="wrap_content"
+            android:padding="8dp">
 
-            <ImageView
-                android:id="@+id/iv_product_image"
+            <FrameLayout
+                android:id="@+id/frame_image"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:background="#EEEEEE"
-                android:src="@drawable/placeholder_image"
-                android:contentDescription="Product Image" />
+                android:layout_height="120dp"
+                android:layout_alignParentTop="true">
 
-            <!-- Stock Count Box -->
+                <ImageView
+                    android:id="@+id/iv_product_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:background="#EEEEEE"
+                    android:src="@drawable/placeholder_image"
+                    android:contentDescription="Product Image" />
+
+                <!-- Stock Count Box -->
+                <TextView
+                    android:id="@+id/tv_stock_count_overlay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|end"
+                    android:background="@drawable/stock_count_bg"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:text="10"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:elevation="0dp"
+                    android:minWidth="24dp"
+                    android:gravity="center" />
+
+            </FrameLayout>
+
+            <!-- Product name with fixed height for 2 lines -->
             <TextView
-                android:id="@+id/tv_stock_count_overlay"
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_product_name"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:background="@drawable/stock_count_bg"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:text="10"
-                android:textSize="12sp"
+                android:layout_below="@id/frame_image"
+                android:layout_marginTop="8dp"
+                android:text="Product Name"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
-                android:elevation="2dp"
-                android:minWidth="24dp"
-                android:gravity="center" />
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:minHeight="40dp" />
 
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/tv_product_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Product Name"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/text_primary" />
-
-        <!-- Price and Add to Cart Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:id="@+id/tv_product_price"
-                android:layout_width="0dp"
+            <!-- Price and Add to Cart Row - Anchored to bottom -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="$0.00"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black" />
+                android:layout_below="@id/tv_product_name"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <ImageButton
-                android:id="@+id/btn_add_to_cart"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginStart="8dp"
-                android:src="@android:drawable/ic_input_add"
-                android:background="@drawable/circle_button_background"
-                android:scaleType="center"
-                android:contentDescription="Add to Cart"
-                app:tint="#FFFFFF" />
+                <TextView
+                    android:id="@+id/tv_product_price"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="$0.00"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black" />
 
-        </LinearLayout>
-    </LinearLayout>
+                <ImageButton
+                    android:id="@+id/btn_add_to_cart"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@android:drawable/ic_input_add"
+                    android:background="@drawable/circle_button_background"
+                    android:scaleType="center"
+                    android:contentDescription="Add to Cart"
+                    app:tint="#FFFFFF" />
+
+            </LinearLayout>
+        </RelativeLayout>
+    </FrameLayout>
 
 </androidx.cardview.widget.CardView>

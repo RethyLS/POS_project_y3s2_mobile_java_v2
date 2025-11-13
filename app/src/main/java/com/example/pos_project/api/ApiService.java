@@ -3,6 +3,8 @@ package com.example.pos_project.api;
 import com.example.pos_project.dto.ApiResponse;
 import com.example.pos_project.dto.LoginRequest;
 import com.example.pos_project.dto.LoginResponse;
+import com.example.pos_project.dto.SaleRequest;
+import com.example.pos_project.dto.SaleResponse;
 import com.example.pos_project.model.Product;
 import java.util.List;
 import retrofit2.Call;
@@ -46,4 +48,8 @@ public interface ApiService {
     
     @GET("stores/{id}")
     Call<ApiResponse<com.example.pos_project.model.Store>> getStore(@Header("Authorization") String token, @Path("id") int id);
+    
+    // Sale endpoints
+    @POST("sales")
+    Call<SaleResponse> createSale(@Header("Authorization") String token, @Body SaleRequest saleRequest);
 }

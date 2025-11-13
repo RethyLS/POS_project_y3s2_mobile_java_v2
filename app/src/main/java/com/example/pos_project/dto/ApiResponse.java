@@ -1,19 +1,24 @@
 package com.example.pos_project.dto;
 
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose;
 import java.util.List;
 
 public class ApiResponse<T> {
     @SerializedName("success")
+    @Expose
     private boolean success;
     
     @SerializedName("message")
+    @Expose
     private String message;
     
     @SerializedName("data")
+    @Expose
     private T data;
     
     @SerializedName("meta")
+    @Expose
     private PaginationMeta meta;
 
     // Constructors

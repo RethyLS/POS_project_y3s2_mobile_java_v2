@@ -17,7 +17,7 @@ import com.example.pos_project.model.User;
 
 @Database(
     entities = {User.class, Product.class, Sale.class, SaleItem.class},
-    version = 2,
+    version = 5,
     exportSchema = false
 )
 public abstract class POSDatabase extends RoomDatabase {

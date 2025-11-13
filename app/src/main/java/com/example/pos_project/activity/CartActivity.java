@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -19,7 +20,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.pos_project.R;
 import com.example.pos_project.adapter.CartAdapter;
+import com.example.pos_project.api.ApiClient;
+import com.example.pos_project.api.ApiService;
+import com.example.pos_project.auth.AuthManager;
 import com.example.pos_project.database.POSDatabase;
+import com.example.pos_project.dto.SaleRequest;
+import com.example.pos_project.dto.SaleItemRequest;
+import com.example.pos_project.dto.SaleResponse;
 import com.example.pos_project.model.CartItem;
 import com.example.pos_project.model.Sale;
 import com.example.pos_project.model.SaleItem;
@@ -32,6 +39,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CartActivity extends AppCompatActivity implements CartAdapter.OnCartItemClickListener {
 
@@ -46,6 +57,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     
     private POSDatabase database;
     private ExecutorService executor;
+    private AuthManager authManager;
     
     private double totalAmount = 0.0;
 
@@ -53,6 +65,9 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
+
+        // Set status bar color to white
+        getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
 
         initViews();
         initDatabase();
@@ -75,6 +90,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private void initDatabase() {
         database = POSDatabase.getInstance(this);
         executor = Executors.newFixedThreadPool(4);
+        authManager = AuthManager.getInstance(this);
     }
 
     private void setupToolbar() {
@@ -105,11 +121,15 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_checkout, null);
         EditText etCustomerName = dialogView.findViewById(R.id.et_customer_name);
         EditText etAmountPaid = dialogView.findViewById(R.id.et_amount_paid);
+        TextView tvTotalPrice = dialogView.findViewById(R.id.tv_total_price);
         TextView btnConfirmCheckout = dialogView.findViewById(R.id.btn_confirm_checkout);
         TextView btnPaymentCash = dialogView.findViewById(R.id.btn_payment_cash);
         TextView btnPaymentCard = dialogView.findViewById(R.id.btn_payment_card);
         TextView btnPaymentMobile = dialogView.findViewById(R.id.btn_payment_mobile);
         TextView btnPaymentCredit = dialogView.findViewById(R.id.btn_payment_credit);
+
+        // Set total price
+        tvTotalPrice.setText(String.format("Total: $%.2f", totalAmount));
 
         final String[] selectedPaymentMethod = {"cash"};
 
@@ -119,7 +139,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             setPaymentButtonUnselected(btnPaymentCard);
             setPaymentButtonUnselected(btnPaymentMobile);
             setPaymentButtonUnselected(btnPaymentCredit);
-            
+
             // Set selected button to active state (primary background, white text)
             if (v == btnPaymentCash) {
                 selectedPaymentMethod[0] = "cash";
@@ -172,9 +192,137 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 return;
             }
             dialog.dismiss();
-            processCheckout(customerName, amountPaid, paymentMethod);
+            // Show Sale Complete Dialog
+            SaleCompleteDialog saleCompleteDialog = new SaleCompleteDialog(CartActivity.this,
+                customerName, totalAmount, amountPaid, paymentMethod,
+                new ArrayList<>(cartItems), (custName, total, paid, method) -> {
+                    // Process the checkout when dialog completes
+                    processCheckout(custName, paid, method);
+                });
+            saleCompleteDialog.show();
         });
         dialog.show();
+    }
+
+    private void showReceiptDialog(String customerName, double amountPaid, String paymentMethod) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_receipt_checkout, null);
+
+        // Get references to views
+        LinearLayout itemsContainer = dialogView.findViewById(R.id.items_container);
+        TextView tvSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
+        TextView tvSeller = dialogView.findViewById(R.id.tv_receipt_seller);
+        LinearLayout customerPaymentInfo = dialogView.findViewById(R.id.customer_payment_info);
+        TextView btnConfirmCheckout = dialogView.findViewById(R.id.btn_receipt_confirm_checkout);
+
+        // Set seller name (user login name)
+        String sellerName = com.example.pos_project.auth.AuthManager.getInstance(this).getUserName();
+        if (sellerName != null && !sellerName.isEmpty()) {
+            tvSeller.setText(sellerName);
+        } else {
+            tvSeller.setText("Unknown");
+        }
+
+        // Set subtotal
+        tvSubtotal.setText(String.format("$%.2f", totalAmount));
+
+        // Populate items list
+        populateReceiptItems(itemsContainer);
+
+        // Add customer name and amount paid display
+        TextView tvCustLabel = new TextView(this);
+        tvCustLabel.setText("Customer: " + customerName);
+        tvCustLabel.setTextSize(14);
+        tvCustLabel.setTextColor(getResources().getColor(android.R.color.black));
+        tvCustLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvCustLabel.setPadding(0, 0, 0, 8);
+
+        TextView tvAmountLabel = new TextView(this);
+        tvAmountLabel.setText("Amount Paid: $" + String.format("%.2f", amountPaid));
+        tvAmountLabel.setTextSize(14);
+        tvAmountLabel.setTextColor(getResources().getColor(R.color.primary));
+        tvAmountLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvAmountLabel.setPadding(0, 0, 0, 8);
+
+        TextView tvPaymentLabel = new TextView(this);
+        tvPaymentLabel.setText("Payment Method: " + paymentMethod.toUpperCase());
+        tvPaymentLabel.setTextSize(14);
+        tvPaymentLabel.setTextColor(getResources().getColor(android.R.color.black));
+        tvPaymentLabel.setPadding(0, 0, 0, 16);
+
+        customerPaymentInfo.addView(tvCustLabel);
+        customerPaymentInfo.addView(tvAmountLabel);
+        customerPaymentInfo.addView(tvPaymentLabel);
+
+        // Add separator before customer info
+        View separator = new View(this);
+        separator.setLayoutParams(new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 1));
+        separator.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+        customerPaymentInfo.addView(separator, 0);
+
+        // Create and show dialog
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnConfirmCheckout.setOnClickListener(v -> {
+            dialog.dismiss();
+            processCheckout(customerName, amountPaid, paymentMethod);
+        });
+
+        dialog.show();
+
+        // Adjust dialog size based on content
+        dialog.getWindow().setLayout(
+            (int) (getResources().getDisplayMetrics().widthPixels * 0.95),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+    }
+
+    private void populateReceiptItems(LinearLayout itemsContainer) {
+        itemsContainer.removeAllViews();
+
+        for (CartItem item : cartItems) {
+            // Create item row
+            LinearLayout itemRow = new LinearLayout(this);
+            itemRow.setOrientation(LinearLayout.HORIZONTAL);
+            itemRow.setPadding(8, 8, 8, 8);
+
+            // Product name (left side)
+            TextView tvProductName = new TextView(this);
+            tvProductName.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+            tvProductName.setText(item.getProductName());
+            tvProductName.setTextSize(14);
+            tvProductName.setTextColor(getResources().getColor(android.R.color.black));
+
+            // Quantity and price (right side)
+            TextView tvItemDetails = new TextView(this);
+            tvItemDetails.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            tvItemDetails.setText(String.format("%dx $%.2f = $%.2f",
+                item.getQuantity(),
+                item.getUnitPrice(),
+                item.getTotalPrice()));
+            tvItemDetails.setTextSize(14);
+            tvItemDetails.setTextColor(getResources().getColor(R.color.primary));
+            tvItemDetails.setTypeface(null, android.graphics.Typeface.BOLD);
+
+            // Add views to row
+            itemRow.addView(tvProductName);
+            itemRow.addView(tvItemDetails);
+
+            // Add row to container
+            itemsContainer.addView(itemRow);
+
+            // Add separator line
+            View separator = new View(this);
+            separator.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 1));
+            separator.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+            itemsContainer.addView(separator);
+        }
     }
 
     private void loadCartItems() {
@@ -259,40 +407,307 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     }
 
     private void processCheckout(String customerName, double amountPaid, String paymentMethod) {
-        String saleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+        // Check if user is logged in
+        if (!authManager.isLoggedIn()) {
+            Toast.makeText(this, "Please login first to process sales", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Get auth token
+        String token = authManager.getAuthToken();
+
+        if (token == null || token.isEmpty()) {
+            Toast.makeText(this, "Authentication token not found. Please login again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Get cashier ID
+        int cashierId = authManager.getUserId();
+
+        // TEMPORARY FIX: Use a valid cashier ID if current one is invalid
+        if (cashierId == -1 || cashierId == 0) {
+            android.util.Log.w("CartActivity", "Invalid cashier ID: " + cashierId + ", using default ID 1");
+            cashierId = 1; // Use admin user ID as fallback
+        }
+
+        // Convert payment method to API format
+        String apiPaymentMethod = convertPaymentMethod(paymentMethod);
+
+        // Calculate amounts following Next.js approach
+        double subtotalAmount = 0.0;
+        double taxAmount = 0.0;
         
-        Sale sale = new Sale(saleDate, totalAmount, amountPaid, paymentMethod, 1, customerName);
+        // Create sale items list
+        List<SaleItemRequest> saleItems = new ArrayList<>();
+        for (CartItem cartItem : cartItems) {
+            // Calculate subtotal for this item
+            double itemSubtotal = cartItem.getQuantity() * cartItem.getUnitPrice();
+            subtotalAmount += itemSubtotal;
+            
+            // Calculate tax for this item (assuming tax rate is per item)
+            double itemTaxRate = 0.0; // You may need to get this from product data
+            double itemTax = itemSubtotal * (itemTaxRate / 100);
+            taxAmount += itemTax;
+            
+            SaleItemRequest item = new SaleItemRequest(
+                cartItem.getProductId(), // Use serverId if available, local ID otherwise
+                cartItem.getQuantity(),
+                cartItem.getUnitPrice(),
+                itemTaxRate,
+                0.0  // discount amount
+            );
+            saleItems.add(item);
+            android.util.Log.d("CartActivity", "Sale item: productId=" + cartItem.getProductId() +
+                ", quantity=" + cartItem.getQuantity() + ", unitPrice=" + cartItem.getUnitPrice());
+        }
         
-        executor.execute(() -> {
-            try {
-                // Insert sale
-                long saleId = database.saleDao().insert(sale);
+        double discountAmount = 0.0; // No discount for now
+        double totalAmountCalculated = subtotalAmount + taxAmount - discountAmount;
+
+        android.util.Log.d("CartActivity", "Final sale request data:");
+        android.util.Log.d("CartActivity", "Customer ID: null (walk-in)");
+        android.util.Log.d("CartActivity", "Cashier ID: " + cashierId);
+        android.util.Log.d("CartActivity", "Payment method: " + apiPaymentMethod);
+        android.util.Log.d("CartActivity", "Items count: " + saleItems.size());
+        android.util.Log.d("CartActivity", "Subtotal: " + subtotalAmount);
+        android.util.Log.d("CartActivity", "Tax: " + taxAmount);
+        android.util.Log.d("CartActivity", "Discount: " + discountAmount);
+        android.util.Log.d("CartActivity", "Total: " + totalAmountCalculated);
+
+        // Create sale request matching Next.js structure
+        SaleRequest saleRequest = new SaleRequest(
+            null, // customer_id - explicitly set to null for walk-in customers
+            cashierId,
+            apiPaymentMethod,
+            saleItems,
+            subtotalAmount,
+            taxAmount,
+            discountAmount,
+            totalAmountCalculated,
+            "Sale from Android POS"
+        );
+
+        // Show loading
+        Toast.makeText(this, "Processing sale...", Toast.LENGTH_SHORT).show();
+        
+        // Log the complete sale request JSON with custom Gson that includes null values
+        try {
+            // Create Gson that serializes null values
+            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+                .serializeNulls()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+            String saleRequestJson = gson.toJson(saleRequest);
+            android.util.Log.d("CartActivity", "Sale Request JSON: " + saleRequestJson);
+            android.util.Log.d("CartActivity", "Request Details:");
+            android.util.Log.d("CartActivity", "- customer_id: " + saleRequest.getCustomerId());
+            android.util.Log.d("CartActivity", "- cashier_id: " + saleRequest.getCashierId());
+            android.util.Log.d("CartActivity", "- payment_method: " + saleRequest.getPaymentMethod());
+            android.util.Log.d("CartActivity", "- items count: " + saleRequest.getItems().size());
+            android.util.Log.d("CartActivity", "- subtotal_amount: " + saleRequest.getSubtotalAmount());
+            android.util.Log.d("CartActivity", "- tax_amount: " + saleRequest.getTaxAmount());
+            android.util.Log.d("CartActivity", "- discount_amount: " + saleRequest.getDiscountAmount());
+            android.util.Log.d("CartActivity", "- total_amount: " + saleRequest.getTotalAmount());
+            android.util.Log.d("CartActivity", "- notes: " + saleRequest.getNotes());
+            
+            // Log each item details
+            for (int i = 0; i < saleRequest.getItems().size(); i++) {
+                SaleItemRequest item = saleRequest.getItems().get(i);
+                android.util.Log.d("CartActivity", "Item " + i + ": product_id=" + item.getProductId() +
+                    ", quantity=" + item.getQuantity() + ", unit_price=" + item.getUnitPrice() +
+                    ", tax_rate=" + item.getTaxRate() + ", discount_amount=" + item.getDiscountAmount());
+            }
+        } catch (Exception e) {
+            android.util.Log.e("CartActivity", "Error logging sale request: " + e.getMessage());
+        }
+
+        // Call API
+        ApiService apiService = ApiClient.getRetrofitInstance().create(ApiService.class);
+        Call<SaleResponse> call = apiService.createSale("Bearer " + token, saleRequest);
+
+        call.enqueue(new Callback<SaleResponse>() {
+            @Override
+            public void onResponse(Call<SaleResponse> call, Response<SaleResponse> response) {
+                android.util.Log.d("CartActivity", "API Response Code: " + response.code());
+                android.util.Log.d("CartActivity", "API Response Message: " + response.message());
+                android.util.Log.d("CartActivity", "Response is successful: " + response.isSuccessful());
                 
-                // Insert sale items and update product quantities
-                List<SaleItem> saleItems = new ArrayList<>();
-                for (CartItem cartItem : cartItems) {
-                    SaleItem saleItem = new SaleItem((int) saleId, cartItem.getProductId(), 
-                            cartItem.getProductName(), cartItem.getUnitPrice(), cartItem.getQuantity());
-                    saleItems.add(saleItem);
-                    
-                    // Reduce product quantity
-                    database.productDao().reduceProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
+                if (response.body() != null) {
+                    android.util.Log.d("CartActivity", "Response body success: " + response.body().isSuccess());
+                    android.util.Log.d("CartActivity", "Response body message: " + response.body().getMessage());
+                } else {
+                    android.util.Log.e("CartActivity", "Response body is null");
                 }
-                database.saleItemDao().insertAll(saleItems);
                 
+                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                    // API call successful - also update local database for offline capability
+                    updateLocalDatabase(customerName, amountPaid, paymentMethod);
+                    runOnUiThread(() -> {
+                        Toast.makeText(CartActivity.this, "Sale completed successfully!", Toast.LENGTH_SHORT).show();
+                        clearCartAfterSale();
+                        Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                        finish();
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        String errorMsg = "Sale failed";
+                        String detailedError = "";
+                        
+                        // Enhanced error logging and parsing
+                        android.util.Log.e("CartActivity", "API Error - Response Code: " + response.code());
+                        android.util.Log.e("CartActivity", "API Error - Response Message: " + response.message());
+
+                        if (response.body() != null && response.body().getMessage() != null) {
+                            errorMsg = "Sale failed: " + response.body().getMessage();
+                            android.util.Log.e("CartActivity", "API Error - Response Body Message: " + response.body().getMessage());
+                        } else if (response.errorBody() != null) {
+                            // Try to get error from response body
+                            try {
+                                String errorBody = response.errorBody().string();
+                                android.util.Log.e("CartActivity", "API Error Response Body: " + errorBody);
+
+                                // Try to parse as JSON to get detailed validation errors
+                                try {
+                                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                                    com.google.gson.JsonObject errorJson = gson.fromJson(errorBody, com.google.gson.JsonObject.class);
+                                    
+                                    if (errorJson.has("message")) {
+                                        String apiMessage = errorJson.get("message").getAsString();
+                                        errorMsg = "API Error: " + apiMessage;
+                                        android.util.Log.e("CartActivity", "API Error Message: " + apiMessage);
+                                    }
+                                    
+                                    if (errorJson.has("errors")) {
+                                        com.google.gson.JsonObject errors = errorJson.getAsJsonObject("errors");
+                                        StringBuilder errorDetails = new StringBuilder();
+                                        
+                                        for (String key : errors.keySet()) {
+                                            if (errors.get(key).isJsonArray()) {
+                                                com.google.gson.JsonArray errorArray = errors.getAsJsonArray(key);
+                                                for (int i = 0; i < errorArray.size(); i++) {
+                                                    errorDetails.append(key).append(": ").append(errorArray.get(i).getAsString()).append("\n");
+                                                }
+                                            }
+                                        }
+                                        
+                                        if (errorDetails.length() > 0) {
+                                            detailedError = "Validation errors:\n" + errorDetails.toString();
+                                            android.util.Log.e("CartActivity", "Validation Errors: " + errorDetails.toString());
+                                        }
+                                    }
+                                } catch (com.google.gson.JsonSyntaxException jsonE) {
+                                    android.util.Log.e("CartActivity", "Failed to parse error as JSON: " + jsonE.getMessage());
+                                    // Fall back to plain text error
+                                    if (errorBody.contains("validation") || errorBody.contains("required")) {
+                                        errorMsg = "Validation Error - Required fields missing";
+                                        detailedError = "Please check: cashier ID, payment method, products, and amounts";
+                                    } else {
+                                        errorMsg = "Sale failed: " + errorBody;
+                                    }
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.e("CartActivity", "Error reading error response: " + e.getMessage());
+                                errorMsg = "Sale failed (HTTP " + response.code() + ")";
+                            }
+                        } else {
+                            errorMsg = "Sale failed (HTTP " + response.code() + ")";
+                        }
+
+                        final String finalErrorMsg = errorMsg;
+                        final String finalDetailedError = detailedError;
+
+                        // Show error with option to save locally
+                        new AlertDialog.Builder(CartActivity.this)
+                            .setTitle("Sale Failed")
+                            .setMessage(finalErrorMsg + (finalDetailedError.isEmpty() ? "\n\nWould you like to save this sale locally only?" : "\n\n" + finalDetailedError + "\n\nWould you like to save this sale locally only?"))
+                            .setPositiveButton("Save Locally", (dialog, which) -> {
+                                updateLocalDatabase(customerName, amountPaid, paymentMethod);
+                                clearCartAfterSale();
+                                Toast.makeText(CartActivity.this, "Sale saved locally", Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                startActivity(intent);
+                                finish();
+                            })
+                            .setNegativeButton("Retry", (dialog, which) -> {
+                                // Retry the checkout
+                                processCheckout(customerName, amountPaid, paymentMethod);
+                            })
+                            .setNeutralButton("Cancel", null)
+                            .show();
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SaleResponse> call, Throwable t) {
                 runOnUiThread(() -> {
-                    Toast.makeText(CartActivity.this, "Sale recorded successfully", Toast.LENGTH_SHORT).show();
-                    showSaleCompleteDialog(totalAmount, amountPaid, paymentMethod);
-                    clearCartAfterSale();
-                });
-                
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(CartActivity.this, "Error processing sale: " + e.getMessage(), 
-                            Toast.LENGTH_SHORT).show();
+                    // Show error with option to save locally
+                    new AlertDialog.Builder(CartActivity.this)
+                        .setTitle("Network Error")
+                        .setMessage("Failed to connect to server: " + t.getMessage() + "\n\nWould you like to save this sale locally only?")
+                        .setPositiveButton("Save Locally", (dialog, which) -> {
+                            updateLocalDatabase(customerName, amountPaid, paymentMethod);
+                            clearCartAfterSale();
+                            Toast.makeText(CartActivity.this, "Sale saved locally", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                            finish();
+                        })
+                        .setNegativeButton("Retry", (dialog, which) -> {
+                            // Retry the checkout
+                            processCheckout(customerName, amountPaid, paymentMethod);
+                        })
+                        .setNeutralButton("Cancel", null)
+                        .show();
                 });
             }
         });
+    }
+
+    private void updateLocalDatabase(String customerName, double amountPaid, String paymentMethod) {
+        executor.execute(() -> {
+            try {
+                String saleDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                Sale sale = new Sale(saleDate, totalAmount, amountPaid, paymentMethod, 1, customerName);
+
+                // Insert sale
+                long saleId = database.saleDao().insert(sale);
+
+                // Insert sale items and update product quantities
+                List<SaleItem> saleItems = new ArrayList<>();
+                for (CartItem cartItem : cartItems) {
+                    SaleItem saleItem = new SaleItem((int) saleId, cartItem.getProductId(),
+                            cartItem.getProductName(), cartItem.getUnitPrice(), cartItem.getQuantity());
+                    saleItems.add(saleItem);
+
+                    // Reduce product quantity locally
+                    database.productDao().reduceProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
+                }
+                database.saleItemDao().insertAll(saleItems);
+
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(CartActivity.this, "Error updating local database: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private String convertPaymentMethod(String paymentMethod) {
+        switch (paymentMethod.toLowerCase()) {
+            case "cash":
+                return "cash";
+            case "card":
+                return "card";
+            case "credit":
+                return "credit";
+            default:
+                return "cash"; // default fallback
+        }
     }
 
     private void showSaleCompleteDialog(double totalAmount, double amountPaid, String paymentMethod) {

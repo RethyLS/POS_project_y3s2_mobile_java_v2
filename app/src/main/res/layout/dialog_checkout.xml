@@ -4,8 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@android:color/white"
+    android:background="@drawable/dialog_border">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -117,20 +118,36 @@
                 android:focusable="true" />
         </GridLayout>
 
+        <!-- Total Price Display -->
+        <TextView
+            android:id="@+id/tv_total_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Total: $0.00"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/total_price_background"
+            android:padding="12dp" />
+
         <!-- Amount Paid Input -->
+
+        <!-- Confirm Button -->
         <EditText
             android:id="@+id/et_amount_paid"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:hint="Amount Paid"
-            android:inputType="numberDecimal"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/edittext_border_primary"
             android:drawableStart="@android:drawable/ic_menu_edit"
             android:drawablePadding="12dp"
+            android:hint="Amount Paid"
+            android:inputType="numberDecimal"
             android:padding="12dp"
-            android:background="@drawable/edittext_border_primary"
-            android:layout_marginBottom="16dp" />
+            android:textColor="@android:color/black" />
 
-        <!-- Confirm Button -->
         <TextView
             android:id="@+id/btn_confirm_checkout"
             android:layout_width="match_parent"

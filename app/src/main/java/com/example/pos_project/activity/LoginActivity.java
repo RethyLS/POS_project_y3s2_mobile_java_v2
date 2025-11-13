@@ -3,9 +3,9 @@ package com.example.pos_project.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,7 +25,7 @@ import retrofit2.Response;
 public class LoginActivity extends AppCompatActivity {
     
     private EditText etEmail, etPassword;
-    private Button btnLogin;
+    private TextView btnLogin;
     private ProgressBar progressBar;
     private AuthManager authManager;
     
@@ -35,6 +35,17 @@ public class LoginActivity extends AppCompatActivity {
         
         try {
             setContentView(R.layout.activity_login);
+            
+            // Set status bar color to match login background (#f5f5f5)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(android.graphics.Color.parseColor("#f5f5f5"));
+                // Make status bar icons dark since we're using light background
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    getWindow().getDecorView().setSystemUiVisibility(
+                        getWindow().getDecorView().getSystemUiVisibility() | 
+                        android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                }
+            }
             
             authManager = AuthManager.getInstance(this);
             
@@ -66,10 +77,6 @@ public class LoginActivity extends AppCompatActivity {
                 finish();
                 return;
             }
-            
-            // Set default credentials for testing
-            etEmail.setText("admin@example.com");
-            etPassword.setText("password");
         } catch (Exception e) {
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();

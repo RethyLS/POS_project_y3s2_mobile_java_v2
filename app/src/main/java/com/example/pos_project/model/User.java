@@ -4,36 +4,45 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose;
 
 @Entity(tableName = "users")
 public class User {
     @PrimaryKey(autoGenerate = true)
     @SerializedName("id")
+    @Expose
     private int id;
     
     @SerializedName("name")
+    @Expose
     private String name;
     
     @SerializedName("email")
+    @Expose
     private String email;
     
     @SerializedName("username")
+    @Expose
     private String username;
     
     private String password; // Not serialized for security
     
     @SerializedName("role")
+    @Expose
     private String role; // "admin" or "cashier"
     
     private String fullName; // Local field, mapped from name
     
     @SerializedName("email_verified_at")
+    @Expose
     private String emailVerifiedAt;
     
     @SerializedName("created_at")
+    @Expose
     private String createdAt;
     
     @SerializedName("updated_at")
+    @Expose
     private String updatedAt;
     
     private boolean isActive = true; // Local field

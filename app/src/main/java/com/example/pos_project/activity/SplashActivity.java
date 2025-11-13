@@ -18,6 +18,18 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Set status bar color to match splash background
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.primary));
+            // Make status bar icons light since we're using dark background
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                getWindow().getDecorView().setSystemUiVisibility(
+                    getWindow().getDecorView().getSystemUiVisibility() & 
+                    ~android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+        }
+        
         setContentView(R.layout.activity_splash);
 
         // Navigate based on authentication status after delay

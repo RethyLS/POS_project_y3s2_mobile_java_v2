@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background">
+    android:background="@android:color/white">
 
     <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
@@ -15,7 +15,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/background"
+            android:background="@android:color/white"
             app:navigationIcon="?attr/homeAsUpIndicator"
             app:navigationIconTint="@android:color/black">
 
@@ -55,19 +55,24 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Main Content Area - Flexible Cart Section -->
-    <androidx.cardview.widget.CardView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_margin="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="@android:color/white">
+        android:background="@drawable/card_border">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
             <!-- Scrollable Cart Items Container -->
             <FrameLayout
@@ -124,18 +129,25 @@
 
     </androidx.cardview.widget.CardView>
 
+    </FrameLayout>
+
     <!-- Fixed Payment Section at Bottom -->
-    <androidx.cardview.widget.CardView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@android:color/white">
+        android:background="@drawable/card_border">
 
-        <LinearLayout
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -272,5 +284,7 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
 
 </LinearLayout>

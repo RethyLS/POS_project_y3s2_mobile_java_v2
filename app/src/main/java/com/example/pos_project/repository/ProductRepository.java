@@ -117,6 +117,8 @@ public class ProductRepository {
                         
                         // Process products to extract store and category names for local storage
                         for (Product product : products) {
+                            // serverId is already set correctly by Gson deserialization (apiId maps to "id")
+                            
                             if (product.getCategory() != null) {
                                 product.setCategoryName(product.getCategory().getName());
                             }

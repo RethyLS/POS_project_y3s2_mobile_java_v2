@@ -1,13 +1,16 @@
 package com.example.pos_project.dto;
 
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose;
 import com.example.pos_project.model.User;
 
 public class LoginResponse {
     @SerializedName("user")
+    @Expose
     private User user;
     
     @SerializedName("token")
+    @Expose
     private String token;
 
     // Constructors

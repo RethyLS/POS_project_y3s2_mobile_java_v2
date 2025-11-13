@@ -1,6 +1,8 @@
 package com.example.pos_project.model;
 
-public class CartItem {
+import java.io.Serializable;
+
+public class CartItem implements Serializable {
     private int productId;
     private String productName;
     private String productImage;

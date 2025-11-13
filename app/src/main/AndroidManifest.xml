@@ -38,6 +38,10 @@
         <activity
             android:name=".activity.CartActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".activity.SaleCompleteActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

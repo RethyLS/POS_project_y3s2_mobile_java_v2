@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,6 +41,7 @@ public class SalesActivity extends AppCompatActivity implements
     private TextView tvCartBadge, tvCartBadgeToolbar, tvUsername;
     private androidx.appcompat.widget.AppCompatImageButton btnToolbarCart;
     private android.widget.ImageView ivProfileIcon;
+    private ProgressBar progressLoading;
     
     // Bottom Action Panel Components
     private androidx.cardview.widget.CardView cartActionPanel;
@@ -117,6 +119,7 @@ public class SalesActivity extends AppCompatActivity implements
         btnCheckout = findViewById(R.id.btn_checkout);
         tvSaveCartBadge = findViewById(R.id.tv_save_cart_badge);
         tvCheckoutBadge = findViewById(R.id.tv_checkout_badge);
+        progressLoading = findViewById(R.id.progress_loading);
         ivProfileIcon.setOnClickListener(v -> showLogoutDialog());
         setupToolbar();
         // Check other views
@@ -342,9 +345,11 @@ public class SalesActivity extends AppCompatActivity implements
         
         isLoadingProducts = true;
         android.util.Log.d("SalesActivity", "Starting product load...");
-        // Only show loading toast if products list is empty
+        // Show loading progress bar if products list is empty
         if (productList.isEmpty()) {
-            Toast.makeText(this, "Loading products...", Toast.LENGTH_SHORT).show();
+            if (progressLoading != null) {
+                progressLoading.setVisibility(View.VISIBLE);
+            }
         }
         
         productRepository.getAllProducts(new ProductRepository.ProductCallback() {
@@ -354,6 +359,12 @@ public class SalesActivity extends AppCompatActivity implements
                     try {
                         android.util.Log.d("SalesActivity", "Products loaded successfully. Count: " + products.size());
                         isLoadingProducts = false;
+                        
+                        // Hide loading progress bar
+                        if (progressLoading != null) {
+                            progressLoading.setVisibility(View.GONE);
+                        }
+                        
                         productList.clear();
                         productList.addAll(products);
                         filteredProductList.clear();
@@ -370,6 +381,12 @@ public class SalesActivity extends AppCompatActivity implements
                         
                     } catch (Exception e) {
                         isLoadingProducts = false;
+                        
+                        // Hide loading progress bar on error
+                        if (progressLoading != null) {
+                            progressLoading.setVisibility(View.GONE);
+                        }
+                        
                         Toast.makeText(SalesActivity.this, "Error updating product list: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -379,6 +396,12 @@ public class SalesActivity extends AppCompatActivity implements
             public void onError(String error) {
                 runOnUiThread(() -> {
                     isLoadingProducts = false;
+                    
+                    // Hide loading progress bar
+                    if (progressLoading != null) {
+                        progressLoading.setVisibility(View.GONE);
+                    }
+                    
                     Toast.makeText(SalesActivity.this, "Error loading products: " + error, Toast.LENGTH_SHORT).show();
                 });
             }
@@ -411,8 +434,10 @@ public class SalesActivity extends AppCompatActivity implements
     public void onAddToCartClick(Product product) {
         try {
             // Add product to cart using CartManager
+            // Use serverId if available, otherwise fall back to local id
+            int productId = product.getServerId() > 0 ? product.getServerId() : product.getId();
             CartItem cartItem = new CartItem(
-                product.getId(),
+                productId,
                 product.getName(),
                 product.getImage(),
                 product.getPrice(),
@@ -423,12 +448,6 @@ public class SalesActivity extends AppCompatActivity implements
             
             // Update UI
             updateCartBadge();
-            
-            // Show confirmation with item count
-            int itemCount = CartManager.getInstance().getCartItemCount();
-            Toast.makeText(this, 
-                product.getName() + " added to cart (Cart Items: " + itemCount + ")", 
-                Toast.LENGTH_SHORT).show();
             
             // Vibrate for feedback (optional)
             android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);

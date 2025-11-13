@@ -3,63 +3,86 @@ package com.example.pos_project.model;
 import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 @Entity(tableName = "products")
 public class Product {
     @PrimaryKey(autoGenerate = true)
+    @Expose(serialize = false, deserialize = false)
     private int id;
     
+    @SerializedName("id")
+    @Expose
+    private int apiId;
+    
     @SerializedName("image")
+    @Expose
     private String image;
     
     @SerializedName("store_id")
+    @Expose
     private int storeId;
     
     @SerializedName("category_id")
+    @Expose
     private int categoryId;
     
     @SerializedName("name")
+    @Expose
     private String name;
     
     @SerializedName("description")
+    @Expose
     private String description;
     
     @SerializedName("sku")
+    @Expose
     private String sku;
     
     @SerializedName("slug")
+    @Expose
     private String slug;
     
     @SerializedName("barcode")
+    @Expose
     private String barcode;
     
     @SerializedName("price")
+    @Expose
     private double price;
     
     @SerializedName("cost_price")
+    @Expose
     private double costPrice;
     
     @SerializedName("tax_rate")
+    @Expose
     private double taxRate;
     
     @SerializedName("status")
+    @Expose
     private String status;
     
     @SerializedName("quantity")
+    @Expose
     private int quantity;
     
     @SerializedName("discount")
+    @Expose
     private double discount;
     
     @SerializedName("quantity_alert")
+    @Expose
     private int quantityAlert;
     
     @SerializedName("store")
+    @Expose
     @Ignore // Ignore for Room database
     private Store store;
     
     @SerializedName("category")
+    @Expose
     @Ignore // Ignore for Room database
     private Category category;
     
@@ -84,6 +107,13 @@ public class Product {
     // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+    
+    public int getServerId() { return apiId; }
+    public void setServerId(int serverId) { this.apiId = serverId; }
+    
+    // Room requires these methods for the apiId field
+    public int getApiId() { return apiId; }
+    public void setApiId(int apiId) { this.apiId = apiId; }
 
     public String getImage() { return image; }
     public void setImage(String image) { this.image = image; }

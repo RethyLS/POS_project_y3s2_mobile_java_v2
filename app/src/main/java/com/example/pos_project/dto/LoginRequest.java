@@ -1,12 +1,15 @@
 package com.example.pos_project.dto;
 
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.Expose;
 
 public class LoginRequest {
     @SerializedName("email")
+    @Expose
     private String email;
     
     @SerializedName("password")
+    @Expose
     private String password;
 
     public LoginRequest(String email, String password) {

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="@android:color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@color/background"
+                android:background="@android:color/white"
                 app:title=""
                 app:titleTextColor="@android:color/black">
                 <LinearLayout
@@ -103,18 +103,25 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="24dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/card_background">
+                app:cardElevation="0dp">
 
-                <EditText
-                    android:id="@+id/et_search_products"
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:hint="Search products..."
-                    android:drawableStart="@android:drawable/ic_menu_search"
-                    android:drawablePadding="12dp"
-                    android:padding="12dp"
-                    android:background="@android:color/transparent" />
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/search_bar_border">
+
+                    <EditText
+                        android:id="@+id/et_search_products"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:hint="Search products..."
+                        android:textColor="@android:color/black"
+                        android:drawableStart="@android:drawable/ic_menu_search"
+                        android:drawablePadding="12dp"
+                        android:padding="12dp"
+                        android:background="@android:color/transparent" />
+
+                </FrameLayout>
 
             </androidx.cardview.widget.CardView>
 
@@ -130,14 +137,29 @@
 
         </LinearLayout>
 
-        <!-- Products Grid -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_products_sale"
+        <!-- Products Grid with Loading Overlay -->
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:padding="8dp"
-            android:clipToPadding="false" />
+            android:layout_weight="1">
+
+            <!-- Loading Progress Bar -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_products_sale"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp" />
+
+            <ProgressBar
+                android:id="@+id/progress_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:indeterminateTint="@color/primary" />
+
+        </FrameLayout>
 
     </LinearLayout>
 

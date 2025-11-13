@@ -7,7 +7,7 @@
     <color name="primary_dark">#A8D045</color>
     <color name="secondary">#FF9800</color>
     <color name="accent">#C0E863</color>
-    <color name="background">#F0F0F0</color>
+    <color name="background">#FFFFFF</color>
     <color name="surface">#FFFFFF</color>
     <color name="card_background">#FFFFFF</color>
     <color name="success">#4CAF50</color>
