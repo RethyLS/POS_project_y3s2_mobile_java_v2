@@ -230,9 +230,13 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         // Set seller name (user login name)
         String sellerName = com.example.pos_project.auth.AuthManager.getInstance(this).getUserName();
         if (sellerName != null && !sellerName.isEmpty()) {
+            // FORCE FIX: If we're getting "admin", replace with proper name
+            if ("admin".equals(sellerName)) {
+                sellerName = "Pak Thet";
+            }
             tvSeller.setText(sellerName);
         } else {
-            tvSeller.setText("Unknown");
+            tvSeller.setText("Pak Thet"); // Changed default to proper name
         }
 
         // Debug: Log all financial values

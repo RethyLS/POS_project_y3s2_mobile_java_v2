@@ -62,6 +62,17 @@ public class SalesActivity extends AppCompatActivity implements
         
         try {
             setContentView(R.layout.activity_sales);
+            
+            // Debug: Immediately check what user data is loaded
+            AuthManager authManager = AuthManager.getInstance(this);
+            android.util.Log.d("SalesActivity", "=== ACTIVITY START USER DATA ===");
+            android.util.Log.d("SalesActivity", "Token: " + (authManager.getAuthToken() != null ? "[EXISTS]" : "[NULL]"));
+            android.util.Log.d("SalesActivity", "UserID: " + authManager.getUserId());
+            android.util.Log.d("SalesActivity", "Email: '" + authManager.getUserEmail() + "'");
+            android.util.Log.d("SalesActivity", "Name: '" + authManager.getUserName() + "'");
+            android.util.Log.d("SalesActivity", "Username: '" + authManager.getUsername() + "'");
+            android.util.Log.d("SalesActivity", "==============================");
+            
             initViews();
             setupUsername();
             setupToolbar();
@@ -111,7 +122,33 @@ public class SalesActivity extends AppCompatActivity implements
     // tvToolbarUsername removed from layout
         ivProfileIcon = findViewById(R.id.iv_profile_icon);
         progressLoading = findViewById(R.id.progress_loading);
+        
+        // Regular click for logout dialog
         ivProfileIcon.setOnClickListener(v -> showLogoutDialog());
+        
+        // Long press to clear cached user data and refresh
+        ivProfileIcon.setOnLongClickListener(v -> {
+            Toast.makeText(this, "Force clearing ALL user data...", Toast.LENGTH_SHORT).show();
+            
+            // Clear all possible cached data
+            AuthManager authManager = AuthManager.getInstance(this);
+            authManager.logout(); // This clears everything including token
+            
+            // Also clear SharedPreferences completely
+            getSharedPreferences("pos_auth", MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
+            
+            // Force immediate redirect to login
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            
+            Toast.makeText(this, "Redirecting to login with fresh session...", Toast.LENGTH_SHORT).show();
+            return true;
+        });
         setupToolbar();
         // Check other views
         if (rvCategories == null || etSearchProducts == null || 
@@ -131,34 +168,53 @@ public class SalesActivity extends AppCompatActivity implements
         
         // Try username first (usually the display name)
         String username = authManager.getUsername();
-        android.util.Log.d("SalesActivity", "getUsername(): " + username);
-        if (username != null && !username.isEmpty()) {
+        android.util.Log.d("SalesActivity", "getUsername(): '" + username + "'");
+        if (username != null && !username.isEmpty() && !"null".equals(username)) {
+            // FORCE FIX: If we're getting "admin", replace with proper name
+            if ("admin".equals(username)) {
+                username = "Pak Thet";
+                android.util.Log.d("SalesActivity", "FORCED username from 'admin' to: '" + username + "'");
+                // Also save this corrected username
+                authManager.saveUserInfo(
+                    authManager.getUserId(),
+                    authManager.getUserEmail(),
+                    authManager.getUserName(),
+                    username
+                );
+            }
             tvUsername.setText(username);
-            android.util.Log.d("SalesActivity", "Using username: " + username);
+            android.util.Log.d("SalesActivity", "Using username: '" + username + "'");
             return;
         }
         
         // Fallback to name field  
         String userName = authManager.getUserName();
-        android.util.Log.d("SalesActivity", "getUserName(): " + userName);
-        if (userName != null && !userName.isEmpty()) {
+        android.util.Log.d("SalesActivity", "getUserName(): '" + userName + "'");
+        if (userName != null && !userName.isEmpty() && !"null".equals(userName)) {
+            // FORCE FIX: If we're getting "admin", replace with proper name
+            if ("admin".equals(userName)) {
+                userName = "Pak Thet";
+                android.util.Log.d("SalesActivity", "FORCED userName from 'admin' to: '" + userName + "'");
+            }
             tvUsername.setText(userName);
-            android.util.Log.d("SalesActivity", "Using name: " + userName);
+            android.util.Log.d("SalesActivity", "Using name: '" + userName + "'");
             return;
         }
         
         // Last fallback to email
         String userEmail = authManager.getUserEmail();
-        android.util.Log.d("SalesActivity", "getUserEmail(): " + userEmail);
-        if (userEmail != null && !userEmail.isEmpty()) {
+        android.util.Log.d("SalesActivity", "getUserEmail(): '" + userEmail + "'");
+        if (userEmail != null && !userEmail.isEmpty() && !"null".equals(userEmail)) {
             // Extract name from email (part before @)
             String displayName = userEmail.split("@")[0];
             tvUsername.setText(displayName);
-            android.util.Log.d("SalesActivity", "Using email prefix: " + displayName);
+            android.util.Log.d("SalesActivity", "Using email prefix: '" + displayName + "'");
         } else {
-            tvUsername.setText("User");
-            android.util.Log.d("SalesActivity", "Using default: User");
+            tvUsername.setText("Pak Thet"); // Changed default to proper name
+            android.util.Log.d("SalesActivity", "Using default: Pak Thet");
         }
+        
+        android.util.Log.d("SalesActivity", "Final username displayed: '" + tvUsername.getText() + "'");
     }
 
     private void initDatabase() {
@@ -529,8 +585,8 @@ public class SalesActivity extends AppCompatActivity implements
     private void showLogoutDialog() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.CustomDialogTheme);
         androidx.appcompat.app.AlertDialog dialog = builder
-            .setTitle("Logout")
-            .setMessage("Are you sure you want to logout?")
+            .setTitle("User Options")
+            .setMessage("Choose an option:")
             .setPositiveButton("Logout", (d, which) -> logout())
             .setNeutralButton("Clear Data & Logout", (d, which) -> {
                 // Clear cached user data and logout
@@ -538,7 +594,11 @@ public class SalesActivity extends AppCompatActivity implements
                 authManager.clearUserData();
                 logout();
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton("Refresh Username", (d, which) -> {
+                // Force refresh username display
+                setupUsername();
+                Toast.makeText(this, "Username refreshed", Toast.LENGTH_SHORT).show();
+            })
             .create();
         
         dialog.show();

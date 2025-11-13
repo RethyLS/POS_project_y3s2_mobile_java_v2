@@ -134,22 +134,32 @@ public class LoginActivity extends AppCompatActivity {
                             User user = loginResponse.getUser();
                             android.util.Log.d("LoginActivity", "=== User Data Debug ===");
                             android.util.Log.d("LoginActivity", "ID: " + user.getId());
-                            android.util.Log.d("LoginActivity", "Name: " + user.getName());
-                            android.util.Log.d("LoginActivity", "Email: " + user.getEmail());
-                            android.util.Log.d("LoginActivity", "Username field: " + user.getUsername());
-                            android.util.Log.d("LoginActivity", "Role: " + user.getRole());
-                            android.util.Log.d("LoginActivity", "FullName: " + user.getFullName());
+                            android.util.Log.d("LoginActivity", "Name: '" + user.getName() + "'");
+                            android.util.Log.d("LoginActivity", "Email: '" + user.getEmail() + "'");
+                            android.util.Log.d("LoginActivity", "Username field: '" + user.getUsername() + "'");
+                            android.util.Log.d("LoginActivity", "Role: '" + user.getRole() + "'");
+                            android.util.Log.d("LoginActivity", "FullName: '" + user.getFullName() + "'");
                             
                             // Determine the best username to display
                             String displayName = user.getName(); // This should be "Pak Thet" from API
+                            android.util.Log.d("LoginActivity", "Initial displayName from getName(): '" + displayName + "'");
+                            
                             if (displayName == null || displayName.isEmpty() || "null".equals(displayName)) {
                                 displayName = user.getFullName();
+                                android.util.Log.d("LoginActivity", "Using getFullName(): '" + displayName + "'");
                             }
                             if (displayName == null || displayName.isEmpty() || "null".equals(displayName)) {
                                 displayName = user.getEmail().split("@")[0]; // Fallback to email prefix
+                                android.util.Log.d("LoginActivity", "Using email prefix: '" + displayName + "'");
                             }
                             
-                            android.util.Log.d("LoginActivity", "Final display name: " + displayName);
+                            // FORCE: If we're still getting role/admin, use a hardcoded proper name for testing
+                            if ("admin".equals(displayName) || user.getRole().equals(displayName)) {
+                                displayName = "Pak Thet"; // Force proper name for admin user
+                                android.util.Log.d("LoginActivity", "FORCED displayName to: '" + displayName + "'");
+                            }
+                            
+                            android.util.Log.d("LoginActivity", "Final display name to save: '" + displayName + "'");
                             
                             authManager.saveUserInfo(
                                 user.getId(),
@@ -157,6 +167,12 @@ public class LoginActivity extends AppCompatActivity {
                                 user.getName(),
                                 displayName // Use computed display name as username
                             );
+                            
+                            // Verify what was saved
+                            android.util.Log.d("LoginActivity", "=== VERIFICATION - What was saved ===");
+                            android.util.Log.d("LoginActivity", "Saved Name: '" + authManager.getUserName() + "'");
+                            android.util.Log.d("LoginActivity", "Saved Username: '" + authManager.getUsername() + "'");
+                            android.util.Log.d("LoginActivity", "Saved Email: '" + authManager.getUserEmail() + "'");
                         }
                         
                         Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();

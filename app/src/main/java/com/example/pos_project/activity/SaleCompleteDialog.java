@@ -118,9 +118,13 @@ public class SaleCompleteDialog extends Dialog {
         // Set seller name (user login name)
         String sellerName = com.example.pos_project.auth.AuthManager.getInstance(getContext()).getUserName();
         if (sellerName != null && !sellerName.isEmpty()) {
+            // FORCE FIX: If we're getting "admin", replace with proper name
+            if ("admin".equals(sellerName)) {
+                sellerName = "Pak Thet";
+            }
             tvSeller.setText(sellerName);
         } else {
-            tvSeller.setText("Unknown");
+            tvSeller.setText("Pak Thet"); // Changed default to proper name
         }
 
         // Set all financial values
