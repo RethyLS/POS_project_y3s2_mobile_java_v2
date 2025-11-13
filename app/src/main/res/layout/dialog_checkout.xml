@@ -141,7 +141,6 @@
             android:layout_height="48dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/edittext_border_primary"
-            android:drawableStart="@android:drawable/ic_menu_edit"
             android:drawablePadding="12dp"
             android:hint="Amount Paid"
             android:inputType="numberDecimal"

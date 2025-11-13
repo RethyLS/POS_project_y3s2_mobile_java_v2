@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,14 +40,9 @@ public class SalesActivity extends AppCompatActivity implements
     private EditText etSearchProducts;
     private Toolbar toolbar;
     private TextView tvCartBadge, tvCartBadgeToolbar, tvUsername;
-    private androidx.appcompat.widget.AppCompatImageButton btnToolbarCart;
+    private ImageButton btnToolbarCart;
     private android.widget.ImageView ivProfileIcon;
     private ProgressBar progressLoading;
-    
-    // Bottom Action Panel Components
-    private androidx.cardview.widget.CardView cartActionPanel;
-    private TextView btnSaveCart, btnCheckout;
-    private TextView tvSaveCartBadge, tvCheckoutBadge;
 
     private SaleProductAdapter productAdapter;
     private CategoryAdapter categoryAdapter;
@@ -114,18 +110,12 @@ public class SalesActivity extends AppCompatActivity implements
         tvUsername = findViewById(R.id.tv_username);
     // tvToolbarUsername removed from layout
         ivProfileIcon = findViewById(R.id.iv_profile_icon);
-        cartActionPanel = findViewById(R.id.cart_action_panel);
-        btnSaveCart = findViewById(R.id.btn_save_cart);
-        btnCheckout = findViewById(R.id.btn_checkout);
-        tvSaveCartBadge = findViewById(R.id.tv_save_cart_badge);
-        tvCheckoutBadge = findViewById(R.id.tv_checkout_badge);
         progressLoading = findViewById(R.id.progress_loading);
         ivProfileIcon.setOnClickListener(v -> showLogoutDialog());
         setupToolbar();
         // Check other views
         if (rvCategories == null || etSearchProducts == null || 
-            toolbar == null || tvCartBadgeToolbar == null || 
-            cartActionPanel == null || btnSaveCart == null || btnCheckout == null) {
+            toolbar == null || tvCartBadgeToolbar == null) {
             android.util.Log.e("SalesActivity", "Some views are null!");
             Toast.makeText(this, "Error initializing views", Toast.LENGTH_LONG).show();
             finish();
@@ -136,20 +126,38 @@ public class SalesActivity extends AppCompatActivity implements
 
     private void setupUsername() {
         AuthManager authManager = AuthManager.getInstance(this);
-        String userName = authManager.getUserName();
         
+        android.util.Log.d("SalesActivity", "=== Username Setup Debug ===");
+        
+        // Try username first (usually the display name)
+        String username = authManager.getUsername();
+        android.util.Log.d("SalesActivity", "getUsername(): " + username);
+        if (username != null && !username.isEmpty()) {
+            tvUsername.setText(username);
+            android.util.Log.d("SalesActivity", "Using username: " + username);
+            return;
+        }
+        
+        // Fallback to name field  
+        String userName = authManager.getUserName();
+        android.util.Log.d("SalesActivity", "getUserName(): " + userName);
         if (userName != null && !userName.isEmpty()) {
             tvUsername.setText(userName);
+            android.util.Log.d("SalesActivity", "Using name: " + userName);
+            return;
+        }
+        
+        // Last fallback to email
+        String userEmail = authManager.getUserEmail();
+        android.util.Log.d("SalesActivity", "getUserEmail(): " + userEmail);
+        if (userEmail != null && !userEmail.isEmpty()) {
+            // Extract name from email (part before @)
+            String displayName = userEmail.split("@")[0];
+            tvUsername.setText(displayName);
+            android.util.Log.d("SalesActivity", "Using email prefix: " + displayName);
         } else {
-            // Fallback to email if name is not available
-            String userEmail = authManager.getUserEmail();
-            if (userEmail != null && !userEmail.isEmpty()) {
-                // Extract name from email (part before @)
-                String displayName = userEmail.split("@")[0];
-                tvUsername.setText(displayName);
-            } else {
-                tvUsername.setText("User");
-            }
+            tvUsername.setText("User");
+            android.util.Log.d("SalesActivity", "Using default: User");
         }
     }
 
@@ -209,16 +217,6 @@ public class SalesActivity extends AppCompatActivity implements
             Intent cartIntent = new Intent(this, CartActivity.class);
             startActivity(cartIntent);
         });
-        
-        // Bottom Action Panel Click Listeners
-        btnSaveCart.setOnClickListener(v -> {
-            saveCurrentTicket();
-        });
-        
-        btnCheckout.setOnClickListener(v -> {
-            Intent cartIntent = new Intent(this, CartActivity.class);
-            startActivity(cartIntent);
-        });
     }
 
     private void updateCartBadge() {
@@ -232,40 +230,9 @@ public class SalesActivity extends AppCompatActivity implements
                 // Update toolbar badge
                 tvCartBadgeToolbar.setVisibility(View.VISIBLE);
                 tvCartBadgeToolbar.setText(String.valueOf(cartItemCount));
-                
-                // Show Bottom Action Panel with animation
-                if (cartActionPanel != null) {
-                    cartActionPanel.setVisibility(View.VISIBLE);
-                    cartActionPanel.animate()
-                        .alpha(1.0f)
-                        .translationY(0)
-                        .setDuration(300)
-                        .start();
-                    
-                    // Update bottom panel badges
-                    if (tvSaveCartBadge != null) {
-                        tvSaveCartBadge.setVisibility(View.VISIBLE);
-                        tvSaveCartBadge.setText("1"); // Always show 1 for save cart
-                    }
-                    
-                    if (tvCheckoutBadge != null) {
-                        tvCheckoutBadge.setVisibility(View.VISIBLE);
-                        tvCheckoutBadge.setText(String.valueOf(cartItemCount));
-                    }
-                }
             } else {
                 // Hide toolbar badge
                 tvCartBadgeToolbar.setVisibility(View.GONE);
-                
-                // Hide Bottom Action Panel with animation
-                if (cartActionPanel != null) {
-                    cartActionPanel.animate()
-                        .alpha(0.0f)
-                        .translationY(cartActionPanel.getHeight())
-                        .setDuration(300)
-                        .withEndAction(() -> cartActionPanel.setVisibility(View.GONE))
-                        .start();
-                }
             }
         } catch (Exception e) {
             // Silent catch to prevent crashes during cart badge update
@@ -462,12 +429,19 @@ public class SalesActivity extends AppCompatActivity implements
             // Add product to cart using CartManager
             // Use serverId if available, otherwise fall back to local id
             int productId = product.getServerId() > 0 ? product.getServerId() : product.getId();
+            
+            // Debug: Log product tax rate
+            android.util.Log.d("SalesActivity", "Adding product: " + product.getName() + 
+                ", Price: $" + product.getPrice() + 
+                ", Tax Rate from backend: " + product.getTaxRate());
+            
             CartItem cartItem = new CartItem(
                 productId,
                 product.getName(),
                 product.getImage(),
                 product.getPrice(),
-                1
+                1,
+                product.getTaxRate() // Use product's specific tax rate from backend
             );
             
             CartManager.getInstance().addToCart(cartItem);
@@ -558,6 +532,12 @@ public class SalesActivity extends AppCompatActivity implements
             .setTitle("Logout")
             .setMessage("Are you sure you want to logout?")
             .setPositiveButton("Logout", (d, which) -> logout())
+            .setNeutralButton("Clear Data & Logout", (d, which) -> {
+                // Clear cached user data and logout
+                AuthManager authManager = AuthManager.getInstance(this);
+                authManager.clearUserData();
+                logout();
+            })
             .setNegativeButton("Cancel", null)
             .create();
         

@@ -6,6 +6,12 @@
     android:gravity="center"
     android:background="#C0E863">
 
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginBottom="24dp"
+        android:src="@drawable/ic_cart_shopping2" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

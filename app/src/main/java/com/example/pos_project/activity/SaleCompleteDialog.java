@@ -11,6 +11,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.example.pos_project.R;
+import com.example.pos_project.model.CartItem;
+import com.example.pos_project.model.CartItem;
 
 import java.util.List;
 
@@ -49,6 +51,11 @@ public class SaleCompleteDialog extends Dialog {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog_sale_complete);
+        
+        // Make dialog background transparent to remove black edges
+        if (getWindow() != null) {
+            getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
 
         initViews();
         setupClickListeners();
@@ -70,12 +77,43 @@ public class SaleCompleteDialog extends Dialog {
         // Import the receipt dialog logic from CartActivity
         android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_receipt_checkout, null);
 
-        // Get references to views
+        // Get references to all views
         android.widget.LinearLayout itemsContainer = dialogView.findViewById(R.id.items_container);
-        android.widget.TextView tvSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
+        android.widget.TextView tvReceiptSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
+        android.widget.TextView tvReceiptTax = dialogView.findViewById(R.id.tv_receipt_tax);
+        android.widget.TextView tvReceiptTotal = dialogView.findViewById(R.id.tv_receipt_total);
+        android.widget.TextView tvReceiptAmountPaid = dialogView.findViewById(R.id.tv_receipt_amount_paid);
+        android.widget.TextView tvReceiptChange = dialogView.findViewById(R.id.tv_receipt_change);
         android.widget.TextView tvSeller = dialogView.findViewById(R.id.tv_receipt_seller);
         android.widget.LinearLayout customerPaymentInfo = dialogView.findViewById(R.id.customer_payment_info);
         android.widget.ImageView btnCloseReceipt = dialogView.findViewById(R.id.btn_close_receipt);
+
+        // Calculate financial values from cart items
+        double subtotalAmount = 0.0;
+        double taxAmount = 0.0;
+        
+        for (CartItem item : cartItems) {
+            double itemSubtotal = item.getTotalPrice();
+            
+            // Convert tax rate from percentage to decimal if needed
+            double taxRateDecimal = item.getTaxRate();
+            if (taxRateDecimal > 1.0) {
+                taxRateDecimal = taxRateDecimal / 100.0;
+            }
+            
+            double itemTax = itemSubtotal * taxRateDecimal;
+            
+            subtotalAmount += itemSubtotal;
+            taxAmount += itemTax;
+        }
+        
+        double calculatedTotal = subtotalAmount + taxAmount;
+        double change = amountPaid - calculatedTotal;
+        
+        // Debug logging
+        android.util.Log.d("SaleCompleteDialog", "Receipt calculations - Subtotal: $" + subtotalAmount + 
+            ", Tax: $" + taxAmount + ", Total: $" + calculatedTotal + ", Amount Paid: $" + amountPaid + 
+            ", Change: $" + change);
 
         // Set seller name (user login name)
         String sellerName = com.example.pos_project.auth.AuthManager.getInstance(getContext()).getUserName();
@@ -85,26 +123,37 @@ public class SaleCompleteDialog extends Dialog {
             tvSeller.setText("Unknown");
         }
 
-        // Set subtotal
-        tvSubtotal.setText(String.format("$%.2f", totalAmount));
-
-        // Populate items list - we'll need to get cart items from CartManager
+        // Set all financial values
+        if (tvReceiptSubtotal != null) {
+            tvReceiptSubtotal.setText(String.format("$%.2f", subtotalAmount));
+        }
+        
+        if (tvReceiptTax != null) {
+            tvReceiptTax.setText(String.format("$%.2f", taxAmount));
+        }
+        
+        if (tvReceiptTotal != null) {
+            tvReceiptTotal.setText(String.format("$%.2f", calculatedTotal));
+        }
+        
+        if (tvReceiptAmountPaid != null) {
+            tvReceiptAmountPaid.setText(String.format("$%.2f", amountPaid));
+        }
+        
+        if (tvReceiptChange != null) {
+            tvReceiptChange.setText(String.format("$%.2f", change));
+        }
+        
+        // Populate items list
         populateReceiptItems(itemsContainer);
 
-        // Add customer name and amount paid display
+        // Add customer name and payment method info
         android.widget.TextView tvCustLabel = new android.widget.TextView(getContext());
         tvCustLabel.setText("Customer: " + customerName);
         tvCustLabel.setTextSize(14);
         tvCustLabel.setTextColor(getContext().getResources().getColor(android.R.color.black));
         tvCustLabel.setTypeface(null, android.graphics.Typeface.BOLD);
         tvCustLabel.setPadding(0, 0, 0, 8);
-
-        android.widget.TextView tvAmountLabel = new android.widget.TextView(getContext());
-        tvAmountLabel.setText("Amount Paid: $" + String.format("%.2f", amountPaid));
-        tvAmountLabel.setTextSize(14);
-        tvAmountLabel.setTextColor(getContext().getResources().getColor(R.color.primary));
-        tvAmountLabel.setTypeface(null, android.graphics.Typeface.BOLD);
-        tvAmountLabel.setPadding(0, 0, 0, 8);
 
         android.widget.TextView tvPaymentLabel = new android.widget.TextView(getContext());
         tvPaymentLabel.setText("Payment Method: " + paymentMethod.toUpperCase());
@@ -113,7 +162,6 @@ public class SaleCompleteDialog extends Dialog {
         tvPaymentLabel.setPadding(0, 0, 0, 16);
 
         customerPaymentInfo.addView(tvCustLabel);
-        customerPaymentInfo.addView(tvAmountLabel);
         customerPaymentInfo.addView(tvPaymentLabel);
 
         // Add separator before customer info
@@ -148,7 +196,7 @@ public class SaleCompleteDialog extends Dialog {
 
         // Use cart items passed from CartActivity
         if (cartItems != null) {
-            for (com.example.pos_project.model.CartItem item : cartItems) {
+            for (CartItem item : cartItems) {
             // Create item row
             android.widget.LinearLayout itemRow = new android.widget.LinearLayout(getContext());
             itemRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
@@ -171,7 +219,7 @@ public class SaleCompleteDialog extends Dialog {
                 item.getUnitPrice(),
                 item.getTotalPrice()));
             tvItemDetails.setTextSize(14);
-            tvItemDetails.setTextColor(getContext().getResources().getColor(R.color.primary));
+            tvItemDetails.setTextColor(getContext().getResources().getColor(android.R.color.black));
             tvItemDetails.setTypeface(null, android.graphics.Typeface.BOLD);
 
             // Add views to row

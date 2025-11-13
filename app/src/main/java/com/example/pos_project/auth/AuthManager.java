@@ -9,6 +9,7 @@ public class AuthManager {
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_USER_EMAIL = "user_email";
     private static final String KEY_USER_NAME = "user_name";
+    private static final String KEY_USERNAME = "username";
     
     private SharedPreferences preferences;
     private static AuthManager instance;
@@ -45,11 +46,12 @@ public class AuthManager {
         return token != null ? "Bearer " + token : null;
     }
     
-    public void saveUserInfo(int userId, String email, String name) {
+    public void saveUserInfo(int userId, String email, String name, String username) {
         preferences.edit()
                 .putInt(KEY_USER_ID, userId)
                 .putString(KEY_USER_EMAIL, email)
                 .putString(KEY_USER_NAME, name)
+                .putString(KEY_USERNAME, username)
                 .apply();
     }
     
@@ -63,5 +65,18 @@ public class AuthManager {
     
     public String getUserName() {
         return preferences.getString(KEY_USER_NAME, null);
+    }
+    
+    public String getUsername() {
+        return preferences.getString(KEY_USERNAME, null);
+    }
+    
+    public void clearUserData() {
+        preferences.edit()
+                .remove(KEY_USER_ID)
+                .remove(KEY_USER_EMAIL)
+                .remove(KEY_USER_NAME)
+                .remove(KEY_USERNAME)
+                .apply();
     }
 }

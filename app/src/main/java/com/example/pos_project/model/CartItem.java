@@ -9,13 +9,15 @@ public class CartItem implements Serializable {
     private double unitPrice;
     private int quantity;
     private double totalPrice;
+    private double taxRate; // Tax rate for this product (e.g., 0.10 for 10%)
 
-    public CartItem(int productId, String productName, String productImage, double unitPrice, int quantity) {
+    public CartItem(int productId, String productName, String productImage, double unitPrice, int quantity, double taxRate) {
         this.productId = productId;
         this.productName = productName;
         this.productImage = productImage;
         this.unitPrice = unitPrice;
         this.quantity = quantity;
+        this.taxRate = taxRate;
         this.totalPrice = unitPrice * quantity;
     }
 
@@ -42,6 +44,9 @@ public class CartItem implements Serializable {
     }
 
     public double getTotalPrice() { return totalPrice; }
+
+    public double getTaxRate() { return taxRate; }
+    public void setTaxRate(double taxRate) { this.taxRate = taxRate; }
 
     private void updateTotalPrice() {
         this.totalPrice = this.unitPrice * this.quantity;

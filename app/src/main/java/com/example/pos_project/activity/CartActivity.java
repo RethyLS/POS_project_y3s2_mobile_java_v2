@@ -50,7 +50,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private Toolbar toolbar;
     private RecyclerView rvCartItems;
     private LinearLayout layoutEmptyCart;
-    private TextView tvTotalAmount;
+    private TextView tvSubtotal, tvTax, tvTotalAmount;
     private TextView btnClearCart, btnCheckout, btnContinueShopping;
 
     private CartAdapter cartAdapter;
@@ -60,6 +60,10 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private ExecutorService executor;
     private AuthManager authManager;
     
+    // Tax calculations will use individual product tax rates from backend
+    
+    private double subtotalAmount = 0.0;
+    private double taxAmount = 0.0;
     private double totalAmount = 0.0;
 
     @Override
@@ -82,6 +86,8 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         toolbar = findViewById(R.id.toolbar);
         rvCartItems = findViewById(R.id.rv_cart_items);
         layoutEmptyCart = findViewById(R.id.layout_empty_cart);
+        tvSubtotal = findViewById(R.id.tv_subtotal);
+        tvTax = findViewById(R.id.tv_tax);
         tvTotalAmount = findViewById(R.id.tv_total_amount);
         btnClearCart = findViewById(R.id.btn_clear_cart);
         btnCheckout = findViewById(R.id.btn_checkout);
@@ -206,11 +212,17 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     }
 
     private void showReceiptDialog(String customerName, double amountPaid, String paymentMethod) {
+        // Ensure calculations are up to date before showing receipt
+        updateTotalAmount();
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_receipt_checkout, null);
 
         // Get references to views
         LinearLayout itemsContainer = dialogView.findViewById(R.id.items_container);
-        TextView tvSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
+        TextView tvReceiptSubtotal = dialogView.findViewById(R.id.tv_receipt_subtotal);
+        TextView tvReceiptTax = dialogView.findViewById(R.id.tv_receipt_tax);
+        TextView tvReceiptTotal = dialogView.findViewById(R.id.tv_receipt_total);
+        TextView tvReceiptAmountPaid = dialogView.findViewById(R.id.tv_receipt_amount_paid);
+        TextView tvReceiptChange = dialogView.findViewById(R.id.tv_receipt_change);
         TextView tvSeller = dialogView.findViewById(R.id.tv_receipt_seller);
         LinearLayout customerPaymentInfo = dialogView.findViewById(R.id.customer_payment_info);
         ImageView btnCloseReceipt = dialogView.findViewById(R.id.btn_close_receipt);
@@ -223,26 +235,58 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             tvSeller.setText("Unknown");
         }
 
-        // Set subtotal
-        tvSubtotal.setText(String.format("$%.2f", totalAmount));
+        // Debug: Log all financial values
+        android.util.Log.d("CartActivity", "Receipt values - Subtotal: $" + subtotalAmount + 
+            ", Tax: $" + taxAmount + ", Total: $" + totalAmount + ", Amount Paid: $" + amountPaid);
+
+        // Set financial values
+        if (tvReceiptSubtotal != null) {
+            tvReceiptSubtotal.setText(String.format("$%.2f", subtotalAmount));
+            android.util.Log.d("CartActivity", "Set subtotal: $" + String.format("%.2f", subtotalAmount));
+        } else {
+            android.util.Log.e("CartActivity", "tvReceiptSubtotal is null!");
+        }
+        
+        if (tvReceiptTax != null) {
+            tvReceiptTax.setText(String.format("$%.2f", taxAmount));
+            android.util.Log.d("CartActivity", "Set tax: $" + String.format("%.2f", taxAmount));
+        } else {
+            android.util.Log.e("CartActivity", "tvReceiptTax is null!");
+        }
+        
+        if (tvReceiptTotal != null) {
+            tvReceiptTotal.setText(String.format("$%.2f", totalAmount));
+            android.util.Log.d("CartActivity", "Set total: $" + String.format("%.2f", totalAmount));
+        } else {
+            android.util.Log.e("CartActivity", "tvReceiptTotal is null!");
+        }
+        
+        if (tvReceiptAmountPaid != null) {
+            tvReceiptAmountPaid.setText(String.format("$%.2f", amountPaid));
+            android.util.Log.d("CartActivity", "Set amount paid: $" + String.format("%.2f", amountPaid));
+        } else {
+            android.util.Log.e("CartActivity", "tvReceiptAmountPaid is null!");
+        }
+        
+        // Calculate and display change
+        double change = amountPaid - totalAmount;
+        if (tvReceiptChange != null) {
+            tvReceiptChange.setText(String.format("$%.2f", change));
+            android.util.Log.d("CartActivity", "Set change: $" + String.format("%.2f", change));
+        } else {
+            android.util.Log.e("CartActivity", "tvReceiptChange is null!");
+        }
 
         // Populate items list
         populateReceiptItems(itemsContainer);
 
-        // Add customer name and amount paid display
+        // Add customer name and payment method info
         TextView tvCustLabel = new TextView(this);
         tvCustLabel.setText("Customer: " + customerName);
         tvCustLabel.setTextSize(14);
         tvCustLabel.setTextColor(getResources().getColor(android.R.color.black));
         tvCustLabel.setTypeface(null, android.graphics.Typeface.BOLD);
         tvCustLabel.setPadding(0, 0, 0, 8);
-
-        TextView tvAmountLabel = new TextView(this);
-        tvAmountLabel.setText("Amount Paid: $" + String.format("%.2f", amountPaid));
-        tvAmountLabel.setTextSize(14);
-        tvAmountLabel.setTextColor(getResources().getColor(R.color.primary));
-        tvAmountLabel.setTypeface(null, android.graphics.Typeface.BOLD);
-        tvAmountLabel.setPadding(0, 0, 0, 8);
 
         TextView tvPaymentLabel = new TextView(this);
         tvPaymentLabel.setText("Payment Method: " + paymentMethod.toUpperCase());
@@ -251,7 +295,6 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         tvPaymentLabel.setPadding(0, 0, 0, 16);
 
         customerPaymentInfo.addView(tvCustLabel);
-        customerPaymentInfo.addView(tvAmountLabel);
         customerPaymentInfo.addView(tvPaymentLabel);
 
         // Add separator before customer info
@@ -307,7 +350,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 item.getUnitPrice(),
                 item.getTotalPrice()));
             tvItemDetails.setTextSize(14);
-            tvItemDetails.setTextColor(getResources().getColor(R.color.primary));
+            tvItemDetails.setTextColor(getResources().getColor(android.R.color.black));
             tvItemDetails.setTypeface(null, android.graphics.Typeface.BOLD);
 
             // Add views to row
@@ -394,11 +437,41 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     }
 
     private void updateTotalAmount() {
-        totalAmount = 0.0;
+        // Calculate subtotal (sum of all item prices without tax)
+        subtotalAmount = 0.0;
+        taxAmount = 0.0;
+        
         for (CartItem item : cartItems) {
-            totalAmount += item.getTotalPrice();
+            double itemSubtotal = item.getTotalPrice();
+            
+            // Convert tax rate from percentage to decimal
+            // If backend sends 16 (meaning 16%), convert to 0.16
+            double taxRateDecimal = item.getTaxRate();
+            if (taxRateDecimal > 1.0) {
+                // Tax rate is in percentage format (e.g., 16), convert to decimal (0.16)
+                taxRateDecimal = taxRateDecimal / 100.0;
+            }
+            
+            double itemTax = itemSubtotal * taxRateDecimal;
+            
+            subtotalAmount += itemSubtotal;
+            taxAmount += itemTax;
         }
-        tvTotalAmount.setText(String.format("$%.2f", totalAmount));
+        
+        // Calculate total (subtotal + tax)
+        totalAmount = subtotalAmount + taxAmount;
+        
+        // Update UI
+        if (tvSubtotal != null) {
+            tvSubtotal.setText(String.format("$%.2f", subtotalAmount));
+        }
+        if (tvTax != null) {
+            tvTax.setText(String.format("$%.2f", taxAmount));
+        }
+        if (tvTotalAmount != null) {
+            tvTotalAmount.setText(String.format("$%.2f", totalAmount));
+        }
+        
         updateCheckoutButton();
     }
 
@@ -488,9 +561,6 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
             "Sale from Android POS"
         );
 
-        // Show loading
-        Toast.makeText(this, "Processing sale...", Toast.LENGTH_SHORT).show();
-        
         // Log the complete sale request JSON with custom Gson that includes null values
         try {
             // Create Gson that serializes null values
@@ -544,7 +614,6 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                     // API call successful - also update local database for offline capability
                     updateLocalDatabase(customerName, amountPaid, paymentMethod);
                     runOnUiThread(() -> {
-                        Toast.makeText(CartActivity.this, "Sale completed successfully!", Toast.LENGTH_SHORT).show();
                         clearCartAfterSale();
                         Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -691,9 +760,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 database.saleItemDao().insertAll(saleItems);
 
             } catch (Exception e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(CartActivity.this, "Error updating local database: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                android.util.Log.e("CartActivity", "Error updating local database: " + e.getMessage(), e);
             }
         });
     }

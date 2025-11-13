@@ -17,6 +17,7 @@ import com.example.pos_project.auth.AuthManager;
 import com.example.pos_project.dto.ApiResponse;
 import com.example.pos_project.dto.LoginRequest;
 import com.example.pos_project.dto.LoginResponse;
+import com.example.pos_project.model.User;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -130,10 +131,31 @@ public class LoginActivity extends AppCompatActivity {
                         // Save auth token and user info
                         authManager.saveAuthToken(loginResponse.getToken());
                         if (loginResponse.getUser() != null) {
+                            User user = loginResponse.getUser();
+                            android.util.Log.d("LoginActivity", "=== User Data Debug ===");
+                            android.util.Log.d("LoginActivity", "ID: " + user.getId());
+                            android.util.Log.d("LoginActivity", "Name: " + user.getName());
+                            android.util.Log.d("LoginActivity", "Email: " + user.getEmail());
+                            android.util.Log.d("LoginActivity", "Username field: " + user.getUsername());
+                            android.util.Log.d("LoginActivity", "Role: " + user.getRole());
+                            android.util.Log.d("LoginActivity", "FullName: " + user.getFullName());
+                            
+                            // Determine the best username to display
+                            String displayName = user.getName(); // This should be "Pak Thet" from API
+                            if (displayName == null || displayName.isEmpty() || "null".equals(displayName)) {
+                                displayName = user.getFullName();
+                            }
+                            if (displayName == null || displayName.isEmpty() || "null".equals(displayName)) {
+                                displayName = user.getEmail().split("@")[0]; // Fallback to email prefix
+                            }
+                            
+                            android.util.Log.d("LoginActivity", "Final display name: " + displayName);
+                            
                             authManager.saveUserInfo(
-                                loginResponse.getUser().getId(),
-                                loginResponse.getUser().getEmail(),
-                                loginResponse.getUser().getName()
+                                user.getId(),
+                                user.getEmail(),
+                                user.getName(),
+                                displayName // Use computed display name as username
                             );
                         }
                         

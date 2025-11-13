@@ -42,19 +42,15 @@ public class NetworkUtils {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(context, "✅ Laravel API Connected Successfully!", Toast.LENGTH_LONG).show();
+                    // API connection successful - silently continue
                 } else {
-                    Toast.makeText(context, "❌ API Connection Failed: " + response.code(), Toast.LENGTH_LONG).show();
+                    // API connection failed - silently continue  
                 }
             }
             
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                String errorMessage = "❌ Cannot reach Laravel server at 192.168.1.137:8000";
-                if (t.getMessage() != null) {
-                    errorMessage += "\nError: " + t.getMessage();
-                }
-                Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show();
+                // Network connection failed - silently continue
             }
         });
     }
