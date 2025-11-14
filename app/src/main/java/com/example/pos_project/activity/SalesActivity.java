@@ -585,24 +585,14 @@ public class SalesActivity extends AppCompatActivity implements
     private void showLogoutDialog() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.CustomDialogTheme);
         androidx.appcompat.app.AlertDialog dialog = builder
-            .setTitle("User Options")
-            .setMessage("Choose an option:")
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
             .setPositiveButton("Logout", (d, which) -> logout())
-            .setNeutralButton("Clear Data & Logout", (d, which) -> {
-                // Clear cached user data and logout
-                AuthManager authManager = AuthManager.getInstance(this);
-                authManager.clearUserData();
-                logout();
-            })
-            .setNegativeButton("Refresh Username", (d, which) -> {
-                // Force refresh username display
-                setupUsername();
-                Toast.makeText(this, "Username refreshed", Toast.LENGTH_SHORT).show();
-            })
+            .setNegativeButton("Cancel", null)
             .create();
-        
+
         dialog.show();
-        
+
         // Set dialog width to 80% of screen width
         android.view.Window window = dialog.getWindow();
         if (window != null) {

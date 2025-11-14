@@ -9,8 +9,8 @@ import com.google.gson.GsonBuilder;
 import java.util.concurrent.TimeUnit;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://192.168.1.7:8000/api/"; // Using local network IP
-    public static final String IMAGE_BASE_URL = "http://192.168.1.7:8000/api/storage/"; // For image serving
+    private static final String BASE_URL = "http://192.168.18.45:8000/api/"; // Using local network IP
+    public static final String IMAGE_BASE_URL = "http://192.168.18.45:8000/api/storage/"; // For image serving
     private static Retrofit retrofit = null;
     private static ApiService apiService = null;
     private static final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor()
@@ -74,7 +74,7 @@ public class ApiClient {
         
         // If it's a full URL with 0.0.0.0:8000, replace with 192.168.1.197:8000
         if (originalUrl.contains("0.0.0.0:8000")) {
-            return originalUrl.replace("0.0.0.0:8000", "192.168.1.7:8000");
+            return originalUrl.replace("0.0.0.0:8000", "192.168.18.45:8000");
         }
         
         // If it's just a path, construct the full URL

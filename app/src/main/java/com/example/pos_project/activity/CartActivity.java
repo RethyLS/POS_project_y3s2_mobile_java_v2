@@ -425,10 +425,11 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
 
     private void clearCart() {
         if (!cartItems.isEmpty()) {
-            new AlertDialog.Builder(this)
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this, R.style.CustomDialogTheme);
+            androidx.appcompat.app.AlertDialog dialog = builder
                     .setTitle("Clear Cart")
                     .setMessage("Are you sure you want to clear all items from the cart?")
-                    .setPositiveButton("Clear", (dialog, which) -> {
+                    .setPositiveButton("Clear", (dialogInterface, which) -> {
                         cartItems.clear();
                         cartAdapter.notifyDataSetChanged();
                         updateTotalAmount();
@@ -436,7 +437,19 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                         CartManager.getInstance().clearCart();
                     })
                     .setNegativeButton("Cancel", null)
-                    .show();
+                    .create();
+            
+            dialog.show();
+            
+            // Set dialog width to 80% of screen width
+            android.view.Window window = dialog.getWindow();
+            if (window != null) {
+                android.view.WindowManager.LayoutParams layoutParams = window.getAttributes();
+                android.util.DisplayMetrics displayMetrics = new android.util.DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                layoutParams.width = (int) (displayMetrics.widthPixels * 0.8);
+                window.setAttributes(layoutParams);
+            }
         }
     }
 
