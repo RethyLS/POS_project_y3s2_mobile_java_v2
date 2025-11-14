@@ -8,6 +8,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
@@ -60,6 +61,9 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
     private ExecutorService executor;
     private AuthManager authManager;
     
+    // Loading indicator
+    private FrameLayout loadingOverlay;
+    
     // Tax calculations will use individual product tax rates from backend
     
     private double subtotalAmount = 0.0;
@@ -71,8 +75,16 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
 
-        // Set status bar color to white
-        getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
+        // Set status bar color to white and make icons dark
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
+            // Make status bar icons dark since we're using light background
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                getWindow().getDecorView().setSystemUiVisibility(
+                    getWindow().getDecorView().getSystemUiVisibility() |
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+        }
 
         initViews();
         initDatabase();
@@ -92,6 +104,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         btnClearCart = findViewById(R.id.btn_clear_cart);
         btnCheckout = findViewById(R.id.btn_checkout);
         btnContinueShopping = findViewById(R.id.btn_continue_shopping);
+        loadingOverlay = findViewById(R.id.loading_overlay);
     }
 
     private void initDatabase() {
@@ -315,8 +328,23 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                 .create();
 
         btnCloseReceipt.setOnClickListener(v -> {
+            // Close receipt dialog first
             dialog.dismiss();
-            processCheckout(customerName, amountPaid, paymentMethod);
+            
+            // Show loading indicator immediately
+            android.util.Log.d("CartActivity", "About to show loading overlay");
+            if (loadingOverlay != null) {
+                loadingOverlay.setVisibility(View.VISIBLE);
+                android.util.Log.d("CartActivity", "Loading overlay shown");
+            } else {
+                android.util.Log.e("CartActivity", "Loading overlay is null!");
+            }
+            
+            // Process checkout with delay to show loading
+            new android.os.Handler().postDelayed(() -> {
+                android.util.Log.d("CartActivity", "Starting checkout process");
+                processCheckout(customerName, amountPaid, paymentMethod);
+            }, 2000); // Longer delay to clearly see loading
         });
 
         dialog.show();
@@ -631,9 +659,16 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                     // API call successful - also update local database for offline capability
                     updateLocalDatabase(customerName, amountPaid, paymentMethod);
                     runOnUiThread(() -> {
+                        // Hide loading overlay
+                        if (loadingOverlay != null) {
+                            loadingOverlay.setVisibility(View.GONE);
+                        }
+                        
                         clearCartAfterSale();
+                        Toast.makeText(CartActivity.this, "Sale completed successfully!", Toast.LENGTH_SHORT).show();
+                        
                         Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                         startActivity(intent);
                         finish();
                     });
@@ -714,7 +749,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                                 clearCartAfterSale();
                                 Toast.makeText(CartActivity.this, "Sale saved locally", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                                 startActivity(intent);
                                 finish();
                             })
@@ -740,7 +775,7 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
                             clearCartAfterSale();
                             Toast.makeText(CartActivity.this, "Sale saved locally", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(CartActivity.this, com.example.pos_project.activity.SalesActivity.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                             startActivity(intent);
                             finish();
                         })

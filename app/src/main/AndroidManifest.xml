@@ -42,6 +42,11 @@
         <activity
             android:name=".activity.SaleCompleteActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".activity.UserProfileActivity"
+            android:theme="@style/TranslucentActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -182,8 +182,13 @@ public class SaleCompleteDialog extends Dialog {
                 .create();
 
         btnCloseReceipt.setOnClickListener(v -> {
+            // Close receipt dialog first
             dialog.dismiss();
-            processCheckout();
+            
+            // Process checkout with delay
+            new android.os.Handler().postDelayed(() -> {
+                processCheckout();
+            }, 200); // Brief delay for smooth transition
         });
 
         dialog.show();

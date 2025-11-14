@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/content_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Profile Icon -->
+    <ImageView
+        android:id="@+id/profile_icon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/user_solid_full"
+        android:background="@drawable/profile_circle_bg"
+        android:padding="8dp" />
+
+    <!-- Username -->
+    <TextView
+        android:id="@+id/username_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:text="Username"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/black" />
+
+    <!-- Separator Line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/darker_gray" />
+
+    <!-- Email Label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Email"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Email TextView -->
+    <TextView
+        android:id="@+id/email_edit"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:hint="Email"
+        android:padding="12dp"
+        android:background="@drawable/edittext_border_primary"
+        android:textColor="@android:color/black"
+        android:textColorHint="@color/text_secondary"
+        android:textSize="16sp" />
+
+    <!-- Password Label -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Password"
+        android:textSize="14sp"
+        android:textColor="@android:color/black" />
+
+    <!-- Password TextView -->
+    <TextView
+        android:id="@+id/password_edit"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:hint="••••••••"
+        android:padding="12dp"
+        android:background="@drawable/edittext_border_primary"
+        android:textColor="@android:color/black"
+        android:textColorHint="@color/text_secondary"
+        android:textSize="16sp" />
+
+    <!-- Logout Button -->
+    <TextView
+        android:id="@+id/logout_button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="32dp"
+        android:text="Logout"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="@drawable/button_primary_rounded"
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

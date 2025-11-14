@@ -21,6 +21,7 @@ import com.example.pos_project.R;
 import com.example.pos_project.adapter.CategoryAdapter;
 import com.example.pos_project.adapter.SaleProductAdapter;
 import com.example.pos_project.activity.CartActivity;
+import com.example.pos_project.activity.UserProfileActivity;
 import com.example.pos_project.auth.AuthManager;
 import com.example.pos_project.database.POSDatabase;
 import com.example.pos_project.model.CartItem;
@@ -123,8 +124,11 @@ public class SalesActivity extends AppCompatActivity implements
         ivProfileIcon = findViewById(R.id.iv_profile_icon);
         progressLoading = findViewById(R.id.progress_loading);
         
-        // Regular click for logout dialog
-        ivProfileIcon.setOnClickListener(v -> showLogoutDialog());
+        // Regular click to open user profile
+        ivProfileIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(this, UserProfileActivity.class);
+            startActivity(intent);
+        });
         
         // Long press to clear cached user data and refresh
         ivProfileIcon.setOnLongClickListener(v -> {
@@ -564,10 +568,13 @@ public class SalesActivity extends AppCompatActivity implements
         super.onResume();
         updateCartBadge(); // Update cart badge when returning to this activity
         
-        // Only load products if list is empty (first time) or if explicitly needed
-        if (database != null && executor != null && productList.isEmpty()) {
-            loadProducts();
+        // Always refresh data when returning to ensure proper display
+        if (database != null && executor != null) {
+            loadProducts(); // Reload products to ensure fresh data (this also updates categories)
         }
+        
+        // Refresh username display in case it was updated
+        setupUsername();
     }
     
     private void logout() {
