@@ -45,7 +45,10 @@
             
         <activity
             android:name=".activity.UserProfileActivity"
-            android:theme="@style/TranslucentActivity"
+            android:exported="false" />
+            
+        <activity
+            android:name=".activity.SalesHistoryActivity"
             android:exported="false" />
     </application>
 

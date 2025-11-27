@@ -7,6 +7,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -75,16 +76,23 @@ public class CartActivity extends AppCompatActivity implements CartAdapter.OnCar
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cart);
 
-        // Set status bar color to white and make icons dark
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
-            // Make status bar icons dark since we're using light background
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                getWindow().getDecorView().setSystemUiVisibility(
-                    getWindow().getDecorView().getSystemUiVisibility() |
-                    android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        // Fix status bar: White background with dark/black icons
+        getWindow().setStatusBarColor(getResources().getColor(R.color.background));
+        
+        // Aggressive fix for dark icons: Clear all flags first, then set only the light status bar flag
+        getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // Remove the listener to avoid repeated calls
+                getWindow().getDecorView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                
+                // Clear all existing system UI flags to avoid conflicts
+                getWindow().getDecorView().setSystemUiVisibility(0);
+                
+                // Set only the light status bar flag for dark/black icons
+                getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
             }
-        }
+        });
 
         initViews();
         initDatabase();

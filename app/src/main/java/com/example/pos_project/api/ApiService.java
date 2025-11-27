@@ -50,6 +50,9 @@ public interface ApiService {
     Call<ApiResponse<com.example.pos_project.model.Store>> getStore(@Header("Authorization") String token, @Path("id") int id);
     
     // Sale endpoints
+    @GET("sales?per_page=1000&with=")
+    Call<ApiResponse<com.example.pos_project.dto.PaginatedData<com.example.pos_project.model.Sale>>> getAllSales(@Header("Authorization") String token);
+    
     @POST("sales")
     Call<SaleResponse> createSale(@Header("Authorization") String token, @Body SaleRequest saleRequest);
 }

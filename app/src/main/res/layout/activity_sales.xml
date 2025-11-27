@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@android:color/white"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,61 +23,92 @@
                 android:background="@android:color/white"
                 app:title=""
                 app:titleTextColor="@android:color/black">
-                <LinearLayout
-                    android:id="@+id/toolbar_profile_container"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_gravity="start">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-                    <ImageView
-                        android:id="@+id/iv_profile_icon"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/profile_circle_bg"
-                        android:contentDescription="Profile Icon"
-                        android:padding="4dp"
-                        android:src="@drawable/user_solid_full" />
+                    <!-- Profile Section (Left Side) -->
+                    <LinearLayout
+                        android:id="@+id/toolbar_profile_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_alignParentStart="true"
+                        android:paddingStart="16dp">
 
-                    <TextView
-                        android:id="@+id/tv_username"
+                        <ImageView
+                            android:id="@+id/iv_profile_icon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/profile_circle_bg"
+                            android:contentDescription="Profile Icon"
+                            android:padding="4dp"
+                            android:src="@drawable/user_solid_full" />
+
+                        <TextView
+                            android:id="@+id/tv_username"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Username"
+                            android:textColor="@color/text_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <!-- Right Side Buttons Container -->
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="Username"
-                        android:textColor="@color/text_primary"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:orientation="horizontal"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="16dp">
 
-                </LinearLayout>
+                    <!-- Sales History Button -->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp">
 
-                <!-- Cart Button with Badge in Toolbar -->
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|center_vertical"
-                    android:layout_marginEnd="16dp">
+                        <ImageButton
+                            android:id="@+id/btn_toolbar_sales_history"
+                            android:layout_width="60dp"
+                            android:layout_height="40dp"
+                            android:padding="8dp"
+                            android:background="@drawable/button_primary"
+                            android:src="@drawable/ic_document"
+                            android:scaleType="centerInside"
+                            android:contentDescription="Sales History" />
 
-                    <ImageButton
-                        android:id="@+id/btn_toolbar_cart"
-                        android:layout_width="60dp"
-                        android:layout_height="40dp"
-                        android:padding="8dp"
-                        android:background="@drawable/button_primary"
-                        android:src="@drawable/ic_bag_shopping"
-                        android:scaleType="centerInside"
-                        android:contentDescription="Shopping Cart" />
+                    </FrameLayout>
 
-                    <!-- Cart Badge on Toolbar Button -->
-                    <TextView
-                        android:id="@+id/tv_cart_badge_toolbar"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_gravity="top|end"
-                        android:layout_marginTop="2dp"
-                        android:layout_marginEnd="2dp"
-                        android:background="@drawable/badge_circle"
+                    <!-- Cart Button with Badge -->
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <ImageButton
+                            android:id="@+id/btn_toolbar_cart"
+                            android:layout_width="60dp"
+                            android:layout_height="40dp"
+                            android:padding="8dp"
+                            android:background="@drawable/button_primary"
+                            android:src="@drawable/ic_bag_shopping"
+                            android:scaleType="centerInside"
+                            android:contentDescription="Shopping Cart" />
+
+                        <!-- Cart Badge on Toolbar Button -->
+                        <TextView
+                            android:id="@+id/tv_cart_badge_toolbar"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="top|end"
+                            android:layout_marginTop="2dp"
+                            android:layout_marginEnd="2dp"
+                            android:background="@drawable/badge_circle"
                         android:backgroundTint="@android:color/white"
                         android:gravity="center"
                         android:textColor="@android:color/black"
@@ -85,6 +117,10 @@
                         android:visibility="gone"/>
 
                 </FrameLayout>
+
+            </LinearLayout>
+
+                </RelativeLayout>
 
             </androidx.appcompat.widget.Toolbar>
 

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -41,7 +42,7 @@ public class SalesActivity extends AppCompatActivity implements
     private EditText etSearchProducts;
     private Toolbar toolbar;
     private TextView tvCartBadge, tvCartBadgeToolbar, tvUsername;
-    private ImageButton btnToolbarCart;
+    private ImageButton btnToolbarCart, btnToolbarSalesHistory;
     private android.widget.ImageView ivProfileIcon;
     private ProgressBar progressLoading;
 
@@ -63,6 +64,24 @@ public class SalesActivity extends AppCompatActivity implements
         
         try {
             setContentView(R.layout.activity_sales);
+            
+            // Fix status bar: White background with dark/black icons
+            getWindow().setStatusBarColor(getResources().getColor(R.color.background));
+            
+            // Aggressive fix for dark icons: Clear all flags first, then set only the light status bar flag
+            getWindow().getDecorView().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    // Remove the listener to avoid repeated calls
+                    getWindow().getDecorView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    
+                    // Clear all existing system UI flags to avoid conflicts
+                    getWindow().getDecorView().setSystemUiVisibility(0);
+                    
+                    // Set only the light status bar flag for dark/black icons
+                    getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                }
+            });
             
             // Debug: Immediately check what user data is loaded
             AuthManager authManager = AuthManager.getInstance(this);
@@ -119,6 +138,7 @@ public class SalesActivity extends AppCompatActivity implements
         toolbar = findViewById(R.id.toolbar);
         tvCartBadgeToolbar = findViewById(R.id.tv_cart_badge_toolbar);
         btnToolbarCart = findViewById(R.id.btn_toolbar_cart);
+        btnToolbarSalesHistory = findViewById(R.id.btn_toolbar_sales_history);
         tvUsername = findViewById(R.id.tv_username);
     // tvToolbarUsername removed from layout
         ivProfileIcon = findViewById(R.id.iv_profile_icon);
@@ -276,6 +296,12 @@ public class SalesActivity extends AppCompatActivity implements
         btnToolbarCart.setOnClickListener(v -> {
             Intent cartIntent = new Intent(this, CartActivity.class);
             startActivity(cartIntent);
+        });
+
+        // Toolbar Sales History Button Click Listener
+        btnToolbarSalesHistory.setOnClickListener(v -> {
+            Intent salesHistoryIntent = new Intent(this, SalesHistoryActivity.class);
+            startActivity(salesHistoryIntent);
         });
     }
 

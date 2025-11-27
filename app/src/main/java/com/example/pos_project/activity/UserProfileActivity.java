@@ -3,10 +3,8 @@ package com.example.pos_project.activity;
 import com.example.pos_project.R;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,56 +13,32 @@ import com.example.pos_project.auth.AuthManager;
 
 public class UserProfileActivity extends AppCompatActivity {
 
-    private TextView passwordText;
-    private boolean isPasswordVisible = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_profile);
 
-        // Set window to 70% width and slide from left
-        getWindow().setLayout(
-            (int) (getResources().getDisplayMetrics().widthPixels * 0.7), 
-            ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        getWindow().setGravity(Gravity.LEFT | Gravity.TOP);
-        
-        // Adjust the dim amount for the background (30% of the screen)
-        WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
-        layoutParams.dimAmount = 0.3f; // 0.3 = 30% dark (adjust between 0.0 - 1.0)
-        getWindow().setAttributes(layoutParams);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-        
-        // Force slide animation from left
-        overridePendingTransition(R.anim.slide_in_left, R.anim.fade_out);
-
-        // Hide action bar
+        // Set up toolbar with back button
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);  // Disable default title
         }
+        
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
-        // Set status bar color to match sales activity
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.background, getTheme()));
-            // Make status bar icons dark since we're using light background
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                // Clear any existing flags and set light status bar
-                getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                );
-            }
-        }
+        // Set status bar color to white with dark icons
+        getWindow().setStatusBarColor(getResources().getColor(R.color.background));
+        getWindow().getDecorView().setSystemUiVisibility(android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
 
         // Initialize views
-        passwordText = findViewById(R.id.password_edit);
-
-        // Load user data
         AuthManager authManager = AuthManager.getInstance(this);
         TextView usernameText = findViewById(R.id.username_text);
-        TextView emailText = findViewById(R.id.email_edit);
+        TextView emailText = findViewById(R.id.email_text);
 
-        // Set real user data
+        // Set user data
         String username = authManager.getUsername();
         if (username != null && !username.isEmpty()) {
             usernameText.setText(username);
@@ -75,42 +49,40 @@ public class UserProfileActivity extends AppCompatActivity {
             emailText.setText(email);
         }
 
-        // Password field - show placeholder since we don't store actual password
-        passwordText.setText("••••••••");
+        // Set up click listeners
+        findViewById(R.id.language_item).setOnClickListener(v -> {
+            Toast.makeText(this, "Language selection", Toast.LENGTH_SHORT).show();
+            // TODO: Show language selection dialog
+        });
+
+        findViewById(R.id.email_item).setOnClickListener(v -> {
+            Toast.makeText(this, "View user info", Toast.LENGTH_SHORT).show();
+            // TODO: Navigate to user info screen
+        });
+
+        findViewById(R.id.password_item).setOnClickListener(v -> {
+            Toast.makeText(this, "Change password", Toast.LENGTH_SHORT).show();
+            // TODO: Navigate to change password screen
+        });
+
+        findViewById(R.id.privacy_policy_item).setOnClickListener(v -> {
+            Toast.makeText(this, "Privacy policy", Toast.LENGTH_SHORT).show();
+            // TODO: Navigate to privacy policy screen
+        });
+
+        findViewById(R.id.terms_item).setOnClickListener(v -> {
+            Toast.makeText(this, "Terms & Conditions", Toast.LENGTH_SHORT).show();
+            // TODO: Navigate to terms screen
+        });
 
         // Set up logout button
-        TextView logoutButton = findViewById(R.id.logout_button);
-        logoutButton.setOnClickListener(v -> showLogoutDialog());
+        findViewById(R.id.logout_button).setOnClickListener(v -> showLogoutDialog());
     }
 
     @Override
-    public boolean onTouchEvent(android.view.MotionEvent event) {
-        // Close activity when touched outside the content area
-        if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-            // Check if touch is outside the content area
-            View contentView = findViewById(R.id.content_container);
-            if (contentView != null) {
-                int[] location = new int[2];
-                contentView.getLocationOnScreen(location);
-                float x = event.getRawX();
-                float y = event.getRawY();
-
-                // If touch is outside the content container bounds, close the activity
-                if (x < location[0] || x > location[0] + contentView.getWidth() ||
-                    y < location[1] || y > location[1] + contentView.getHeight()) {
-                    finish();
-                    return true;
-                }
-            }
-        }
-        return super.onTouchEvent(event);
-    }
-
-    @Override
-    public void finish() {
-        super.finish();
-        // Slide out to the LEFT when closing
-        overridePendingTransition(0, R.anim.slide_out_left);
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 
     private void showLogoutDialog() {
